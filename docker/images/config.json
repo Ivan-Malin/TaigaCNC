@@ -1,0 +1,17 @@
+{
+  "api": "http://localhost:9000/api/v2",
+  "ws": "ws://localhost:9000/evevnts",
+  "supportEmail": "malili2003li@gmail.com",
+  "social": {
+    "github": {
+      "clientId": "iddd"
+    },
+    "gitlab": {
+      "serverUrl": "https://gitlab.com",
+      "clientId": "iddd"
+    },
+    "google": {
+      "clientId": "iddd"
+    }
+  }
+}
