@@ -12,4 +12,3 @@ Currently, PRIMARY AUTHORS are:
 - David Barragán <david.barragan@kaleidos.net>
 - Teresa de la Torre <teresa.delatorre@kaleidos.net>
 - Yamila Moreno <yamila.moreno@kaleidos.net>
-.
