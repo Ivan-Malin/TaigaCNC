@@ -44,6 +44,7 @@ class Migration(migrations.Migration):
                 ("version", models.PositiveBigIntegerField(default=1, verbose_name="version")),
                 ("ref", models.BigIntegerField(db_index=True, default=0, verbose_name="ref")),
                 ("title", models.CharField(max_length=500, verbose_name="title")),
+                ("titleCNC", models.TextField(blank=True, null=True, verbose_name="titleCNC")),
                 ("description", models.TextField(blank=True, null=True, verbose_name="description")),
                 ("order", models.DecimalField(decimal_places=10, default=100, max_digits=16, verbose_name="order")),
             ],

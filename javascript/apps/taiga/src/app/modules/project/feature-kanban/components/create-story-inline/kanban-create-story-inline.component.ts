@@ -71,8 +71,16 @@ export class KanbanCreateStoryInlineComponent implements AfterViewInit {
   public maxLength = StoryTitleMaxLength;
 
   public form = this.fb.nonNullable.group({
-    title: ['', StoryTitleValidation],
+    title: ['', StoryTitleValidation]
   });
+  // titleCNC: ['', StoryTitleCNC]
+
+  // public form = this.fb.FormGroup({
+  //   title: new FormControl('', {
+  //     nonNullable: true,
+  //     validators: StoryTitleValidation,
+  //   }),
+  // });
 
   public submitted = false;
 
@@ -92,6 +100,7 @@ export class KanbanCreateStoryInlineComponent implements AfterViewInit {
           story: {
             tmpId: v4(),
             title: this.form.get('title')!.value,
+            titleCNC: this.form.get('title')!.value,
             description: '',
             status: {
               name: this.status.name,

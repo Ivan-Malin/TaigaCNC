@@ -55,6 +55,8 @@ services:
       interval: 2s
       timeout: 15s
       retries: 5
+    ports:
+      - "7777:7777"
 
   taiga-worker:
     image: taigaio/backend:alpha
@@ -86,6 +88,9 @@ services:
       - taiga-db-data:/var/lib/postgresql/data
     networks:
       - taiga
+      # For postgres maintaining
+    ports:
+      - "5431:5432"
 
   taiga-redis:
     image: redis:7

@@ -14,6 +14,7 @@ export interface Story {
   ref: number;
   version: number;
   title: string;
+  titleCNC: string | null;
   description: string | null;
   slug: string;
   status: Pick<Status, 'id' | 'color' | 'name'>;
@@ -43,6 +44,7 @@ export interface StoryUpdate {
   version: Story['version'];
   status?: Story['status']['id'];
   title?: Story['title'];
+  titleCNC?: Story['titleCNC'];
   description?: Story['description'];
   workflow?: Workflow['slug'];
 }

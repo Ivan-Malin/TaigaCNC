@@ -25,6 +25,7 @@ class Story(
     RelatedCommentsMixin,
     RelatedMediafilesMixin,
 ):
+    titleCNC = models.TextField(null=True, blank=True, verbose_name="titleCNC")
     title = models.CharField(max_length=500, null=False, blank=False, verbose_name="title")
     description = models.TextField(null=True, blank=True, verbose_name="description")
     order = models.DecimalField(

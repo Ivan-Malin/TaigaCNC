@@ -47,6 +47,21 @@ Copyright (c) 2023-present Kaleidos INC
         </div>
       </a>
       <div class="story-body">
+        <div class="text">
+          {{ story.title }} ПОЛНАЯ ЧЕШУЙНЯ, ЧТО И ЕЁ БРАТ {{ story.titleCNC }} 
+          <ng-container *hasPermission="['modify']; entity: 'story'">
+            <span
+              class="visually-hidden"
+              *ngIf="!vm.isA11yDragInProgress"
+              >{{
+                t('kanban.story_title_a11y', {
+                  position: index + 1,
+                  total: total
+                })
+              }}
+            </span>
+          </ng-container>
+        </div>
         <ng-container
           *hasPermission="
             ['modify'];

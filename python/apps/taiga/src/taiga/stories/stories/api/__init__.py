@@ -63,6 +63,7 @@ async def create_story(
 
     return await stories_services.create_story(
         title=form.title,
+        titleCNC=form.title,
         description=form.description,
         project=workflow.project,
         workflow=workflow,
@@ -235,3 +236,23 @@ async def get_story_or_404(project_id: UUID, ref: int) -> Story:
         raise ex.NotFoundError(f"Story {ref} does not exist in the project")
 
     return story
+
+
+
+
+# Posts the pause
+@routes.stories.get(
+    "/projects/{project_id}/stories/{ref}/pause",
+    name="project.stories.get",
+    summary="Get story",
+    responses=STORY_DETAIL_200 | ERROR_403 | ERROR_404 | ERROR_422,
+    response_model=None,
+)
+async def pause_story_CNC(project_id: B64UUID, ref: int, request: AuthRequest) -> StoryDetailSerializer:
+    """
+    Get the detailed information of a story.
+    """
+    story = await get_story_or_404(project_id=project_id, ref=ref)
+    await check_permissions(permissions=GET_STORY, user=request.user, obj=story)
+
+    return await stories_services.get_story_detail(project_id=project_id, ref=ref)

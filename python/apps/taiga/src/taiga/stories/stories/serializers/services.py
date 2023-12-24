@@ -22,6 +22,7 @@ def serialize_story_detail(
     return StoryDetailSerializer(
         ref=story.ref,
         title=story.title,
+        titleCNC=story.titleCNC,
         description=story.description,
         status=story.status,
         workflow=story.workflow,

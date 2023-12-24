@@ -110,10 +110,12 @@ def create_story(
     status_id: UUID,
     user_id: UUID,
     order: Decimal,
+    titleCNC: str | None = None,
     description: str | None = None,
 ) -> Story:
     return Story.objects.create(
         title=title,
+        titleCNC=titleCNC,
         description=description,
         project_id=project_id,
         workflow_id=workflow_id,

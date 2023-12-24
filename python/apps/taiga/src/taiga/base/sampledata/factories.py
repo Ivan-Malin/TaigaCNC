@@ -278,12 +278,14 @@ async def _create_story(
 ) -> Story:
     _ref = await sync_to_async(get_new_project_reference_id)(status.workflow.project_id)
     _title = title or fake.text(max_nb_chars=random.choice(constants.STORY_TITLE_MAX_SIZE))[:500]
+    _titleCNC = description or f"<p>{fake.paragraph(nb_sentences=2)}</p>"
     _description = description or f"<p>{fake.paragraph(nb_sentences=2)}</p>"
     _created_at = fake.date_time_between(start_date="-2y", tzinfo=timezone.utc)
 
     story = Story(
         ref=_ref,
         title=_title,
+        titleCNC=_titleCNC,
         description=_description,
         order=order,
         created_at=_created_at,

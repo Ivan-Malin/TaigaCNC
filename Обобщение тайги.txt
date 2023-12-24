@@ -1,0 +1,259 @@
+Классы ангуляга
+- story-body
+-- assign
+- 
+
+
+C:\Users\nikit\taiga\TaigaCNC\javascript\apps\taiga\src\app\modules\project\feature-kanban\components\story\kanban-story.component.html
+- основан на компонентах ангуляра. Компоненты ангуляра ссылаются на заранее заготовленные переменные (найти их)
+- то есть возможно создавать динамические, зависимые от переменных html файлы по шаблону angular
+
+
+
+
+Создание истории
+- графический метод вызывает метод
+-- C:\Users\nikit\taiga\TaigaCNC\python\apps\taiga\src\taiga\stories\stories\repositories.py
+@sync_to_async
+def create_story(
+    title: str,
+    project_id: UUID,
+    workflow_id: UUID,
+    status_id: UUID,
+    user_id: UUID,
+    order: Decimal,
+    description: str | None = None,
+) -> Story:
+    return Story.objects.create(
+        title=title,
+        description=description,
+        project_id=project_id,
+        workflow_id=workflow_id,
+        status_id=status_id,
+        created_by_id=user_id,
+        order=order,
+    )
+- сам графический метод
+-- python\apps\taiga\src\taiga\stories\stories\services\__init__.py
+async def create_story(
+    project: Project, workflow: Workflow, status_id: UUID, user: User, title: str, description: str | None
+) -> StoryDetailSerializer:
+    # Validate data
+    workflow_status = await workflows_repositories.get_workflow_status(
+        filters={"id": status_id, "workflow_id": workflow.id}
+    )
+    if not workflow_status:
+        raise ex.InvalidStatusError("The provided status is not valid.")
+
+    latest_story = await stories_repositories.list_stories(
+        filters={"status_id": workflow_status.id}, order_by=["-order"], offset=0, limit=1
+    )
+    order = DEFAULT_ORDER_OFFSET + (latest_story[0].order if latest_story else 0)
+
+    # Create story
+    story = await stories_repositories.create_story(
+        title=title,
+        description=description,
+        project_id=project.id,
+        workflow_id=workflow.id,
+        status_id=workflow_status.id,
+        user_id=user.id,
+        order=order,
+    )
+
+    # Get detailed story
+    detailed_story = await get_story_detail(project_id=project.id, ref=story.ref)
+
+    # Emit event
+    await stories_events.emit_event_when_story_is_created(project=project, story=detailed_story)
+
+    return detailed_story
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+- модели канбана в целом
+-- C:\Users\nikit\taiga\TaigaCNC\javascript\apps\taiga\src\app\modules\project\feature-kanban\kanban.model.ts
+import { Status, Story } from '@taiga/data';
+import { SetOptional } from 'type-fest';
+
+interface BaseStory extends Story {
+  _dragging?: boolean;
+  _shadow?: boolean;
+}
+
+export interface KanbanStoryA11y {
+  ref: null | PartialStory['ref'];
+  initialPosition: {
+    status: Status['id'];
+    index: null | number;
+  };
+  prevPosition: {
+    status: Status['id'];
+    index: null | number;
+  };
+  currentPosition: {
+    status: Status['id'];
+    index: null | number;
+  };
+}
+
+export interface PartialStory
+  extends SetOptional<BaseStory, 'ref' | 'slug' | 'version'> {
+  tmpId: string;
+}
+
+export type KanbanStory = PartialStory | BaseStory;
+
+export interface KanbanReorderEvent {
+  reorder: {
+    reorder: {
+      place: 'before' | 'after';
+      ref: Story['ref'];
+    } | null;
+    status: Status;
+    stories: Story['ref'][];
+  };
+}
+
+
+
+
+
+- модель истории в целом
+-- C:\Users\nikit\taiga\TaigaCNC\javascript\libs\data\src\lib\story.model.ts
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Story
+- главный файл ts скрипта, что описывает класс-компонент истории
+-- C:\Users\nikit\taiga\TaigaCNC\javascript\apps\taiga\src\app\modules\project\feature-kanban\components\story\kanban-story.component.ts
+@UntilDestroy()
+@Component({
+  selector: 'tg-kanban-story',
+  templateUrl: './kanban-story.component.html',
+  styleUrls: ['./kanban-story.component.css'],
+  providers: [RxState],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    CommonModule,
+    TranslocoDirective,
+    RouterLink,
+    TuiSvgModule,
+    HasPermissionDirective,
+    TuiDropdownModule,
+    TooltipDirective,
+    UserAvatarComponent,
+    AssignUserComponent,
+    OutsideClickDirective,
+    SlicePipe,
+    forwardRef(() => KanbanStatusComponent),
+  ],
+})
+export class KanbanStoryComponent implements OnChanges, OnInit {
+  @Input()
+  public story!: KanbanStory;
+
+  @Input()
+  @HostBinding('attr.data-position')
+  public index!: number;
+
+
+- он ссылается на html документ в той же папке (даёт ему свои объекты)
+- а объект истории он берёт из
+-- C:\Users\nikit\taiga\TaigaCNC\javascript\apps\taiga\src\app\modules\project\feature-kanban\kanban.model.ts
+export type KanbanStory = PartialStory | BaseStory;
+
+что ссылается на
+import { Status, Story } from '@taiga/data';
+- что ссылается на интерфейс
+-- C:\Users\nikit\taiga\TaigaCNC\javascript\libs\data\src\lib\story.model.ts
+
+export interface Story {
+  ref: number;
+  version: number;
+  title: string;
+  description: string | null;
+  slug: string;
+  status: Pick<Status, 'id' | 'color' | 'name'>;
+  assignees: Pick<User, 'username' | 'fullName' | 'color'>[];
+}
+
+
+
+- при изменение параметров, требуется дополнить вызов конструктора
+-- C:\Users\nikit\taiga\TaigaCNC\javascript\apps\taiga\src\app\modules\project\feature-kanban\components\create-story-inline\kanban-create-story-inline.component.ts
+  public submit() {
+    this.form.markAllAsTouched();
+
+    if (this.form.valid) {
+      this.store.dispatch(
+        KanbanActions.createStory({
+          story: {
+            tmpId: v4(),
+            title: this.form.get('title')!.value,
+            titleCNC: string | null;
+            description: '',
+            status: {
+              name: this.status.name,
+              id: this.status.id,
+              color: this.status.color,
+            },
+            assignees: [],
+          },
+          workflow: this.workflow.slug,
+        })
+      );
+      const announcement = this.translocoService.translate(
+        'kanban.story_created',
+        {
+          title: this.form.get('title')!.value,
+        }
+      );
+
+- параметры к нему можно взять из формы создания
+-- C:\Users\nikit\taiga\TaigaCNC\javascript\apps\taiga\src\app\modules\project\feature-kanban\components\create-story-inline\kanban-create-story-inline.component.html
+        <input
+        formControlName="titleCNC"
+        data-test="create-story-title"
+        #title
+        inputRef
+        [maxlength]="maxLength"
+        [placeholder]="
+          t('common_story.create_story_form.story_title_placeholder')
+        " />
+
+- обязательно необходимо прописать/переписать в API (который используется самим сайтом), методы для доступа к полю
+-- C:\Users\nikit\taiga\TaigaCNC\python\apps\taiga\src\taiga\stories\stories\api\__init__.py
