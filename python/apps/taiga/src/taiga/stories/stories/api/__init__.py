@@ -17,9 +17,9 @@ from taiga.exceptions.api.errors import ERROR_403, ERROR_404, ERROR_422
 from taiga.permissions import HasPerm
 from taiga.routers import routes
 from taiga.stories.stories import services as stories_services
-from taiga.stories.stories.api.validators import ReorderStoriesValidator, StoryValidator, UpdateStoryValidator
+from taiga.stories.stories.api.validators import ReorderStoriesValidator, StoryValidator, UpdateStoryValidator, CNCFileValidator
 from taiga.stories.stories.models import Story
-from taiga.stories.stories.serializers import ReorderStoriesSerializer, StoryDetailSerializer, StorySummarySerializer
+from taiga.stories.stories.serializers import ReorderStoriesSerializer, StoryDetailSerializer, StorySummarySerializer, CNCControlStatusSerializer #
 from taiga.workflows.api import get_workflow_or_404
 
 # PERMISSIONS
@@ -240,19 +240,62 @@ async def get_story_or_404(project_id: UUID, ref: int) -> Story:
 
 
 
-# Posts the pause
+async def process_control_cnc(ref, control) -> CNCControlStatusSerializer:
+    return CNCControlStatusSerializer(
+        ref = ref,
+        control = control, # pause | kill | resume
+        state = control, # running | pause | idle
+        status = "Accepted") # Accepted | not accepted
+
+# Pause | kill | resume
 @routes.stories.get(
-    "/projects/{project_id}/stories/{ref}/pause",
+    "/projects/{project_id}/stories/{ref}/control/{control}",
     name="project.stories.get",
-    summary="Get story",
+    summary="Control CNC",
     responses=STORY_DETAIL_200 | ERROR_403 | ERROR_404 | ERROR_422,
     response_model=None,
 )
-async def pause_story_CNC(project_id: B64UUID, ref: int, request: AuthRequest) -> StoryDetailSerializer:
+async def control_story_CNC(project_id: B64UUID, ref: int, control: str, request: AuthRequest) -> CNCControlStatusSerializer:
     """
     Get the detailed information of a story.
     """
+    #! TODO adds permissions check
     story = await get_story_or_404(project_id=project_id, ref=ref)
-    await check_permissions(permissions=GET_STORY, user=request.user, obj=story)
+    # await check_permissions(permissions=UPDATE_STORY, user=request.user, obj=story)
 
-    return await stories_services.get_story_detail(project_id=project_id, ref=ref)
+    return await process_control_cnc(ref = ref, control = control) # Accepted | not accepted
+
+
+
+
+
+async def process_post_task_CNC(ref, control) -> CNCControlStatusSerializer:
+    return CNCControlStatusSerializer(
+        ref = ref,
+        control = control, # pause | kill | resume
+        state = control, # running | pause | idle
+        status = "Accepted") # Accepted | not accepted
+
+@routes.stories.post(
+    "/projects/{project_id}/stories/{ref}/post_task",
+    name="project.stories.post",
+    summary="Posts task to CNC",
+    responses=STORY_DETAIL_200 | ERROR_403 | ERROR_404 | ERROR_422,
+    response_model=None,
+)
+async def post_task_CNC(
+    project_id: B64UUID,
+    ref: int,
+    request: AuthRequest,
+    form: CNCFileValidator,
+) -> CNCControlStatusSerializer:
+    """
+    Posts task to CNC.
+    """
+    #! TODO adds permissions check
+    story = await get_story_or_404(project_id=project_id, ref=ref)
+    values = form.dict(exclude_unset=True)
+    print(values)
+    # current_version = values.pop("version")
+
+    return await process_post_task_CNC(ref = ref, control = 'resume')

@@ -41,6 +41,8 @@ import { HasPermissionDirective } from '~/app/shared/directives/has-permissions/
 import { OutsideClickDirective } from '~/app/shared/directives/outside-click/outside-click.directive';
 import { UserAvatarComponent } from '~/app/shared/user-avatar/user-avatar.component';
 import { AssignUserComponent } from '~/app/modules/project/components/assign-user/assign-user.component';
+import { Observable } from 'rxjs';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 export interface StoryState {
   isA11yDragInProgress: boolean;
@@ -51,6 +53,7 @@ export interface StoryState {
   canEdit: boolean;
 }
 
+// model$ is forwardly reffering to this.state dict. If we want to bypass variables, we can use vm (i.e. this.state)
 @UntilDestroy()
 @Component({
   selector: 'tg-kanban-story',
@@ -71,6 +74,7 @@ export interface StoryState {
     AssignUserComponent,
     OutsideClickDirective,
     SlicePipe,
+    HttpClientModule,
     forwardRef(() => KanbanStatusComponent),
   ],
 })
@@ -117,7 +121,8 @@ export class KanbanStoryComponent implements OnChanges, OnInit {
     private location: Location,
     private store: Store,
     private el: ElementRef,
-    private permissionService: PermissionsService
+    private permissionService: PermissionsService,
+    private http: HttpClient
   ) {
     this.state.set({
       assignees: [],
@@ -145,6 +150,10 @@ export class KanbanStoryComponent implements OnChanges, OnInit {
       'canEdit',
       this.permissionService.hasPermissions$('story', ['modify'])
     );
+    // this.state.connect(
+    //   'isCNC',
+    //   this.permissionService.hasPermissions$('story', ['modify'])
+    // );
 
     this.state.hold(this.state.select('currentUser'), () => {
       this.setAssigneesInState();
@@ -283,5 +292,55 @@ export class KanbanStoryComponent implements OnChanges, OnInit {
         });
       }
     }
+  }
+
+
+
+  public handlePause(event: MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    // Error fetch data
+    // try {
+    //   this.http.get(`${this.location.path()}/control/pause`).subscribe((data:any) => {
+    //     // Process the fetched data
+    //     console.error('We got some data:', data);
+    //   }, (error:any) => {
+    //     throw new Error('Failed to fetch data'); // Manually throwing an error for demonstration
+    //   });
+    // } catch (error) {
+    //   console.error('An error occurred while fetching data:', error);
+    //   console.error(`Another beautiful error: ${error}`);
+    //   // Handle the error or inform the user about the failure
+    // }
+    // var a = this.http
+    //         .get(`${this.location.href.path()}/control/pause`);
+  }
+  public handleKill(event: MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    // Working perfectly
+    this.http.get(`project/${this.state.get('project').id}/stories/${this.story.ref}/control/kill`).subscribe({next:(data:any) => console.log(data)});
+    // console.log("asd");
+    // var a = this.http
+    //         .get(`${this.location}/control/kill`);
+  }
+  public handleResume(event: MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    // var a = this.http
+    //         .get(`${this.location.path()}/control/resume`);
+
+    // Doesn't use story id
+    // this.http.get(`${this.location.path()}/control/resume`).subscribe(
+    //           (data:any) => {
+    //             console.log(data);
+    //           },
+    //           (error:any) => {
+    //             console.error('Error occurred:', error);
+    //           }
+    //         );
   }
 }

@@ -48,7 +48,7 @@ Copyright (c) 2023-present Kaleidos INC
       </a>
       <div class="story-body">
         <div class="text">
-          {{ story.title }} ПОЛНАЯ ЧЕШУЙНЯ, ЧТО И ЕЁ БРАТ {{ story.titleCNC }} 
+          {{ story.title }}
           <ng-container *hasPermission="['modify']; entity: 'story'">
             <span
               class="visually-hidden"
@@ -62,6 +62,10 @@ Copyright (c) 2023-present Kaleidos INC
             </span>
           </ng-container>
         </div>
+        <br>
+        <div class="text">
+          {{ story.titleCNC }} 
+        </div>    
         <ng-container
           *hasPermission="
             ['modify'];
@@ -213,5 +217,29 @@ Copyright (c) 2023-present Kaleidos INC
         }}
       </p>
     </ng-template>
+    <br>
+      <div
+        class="cnc-control" 
+        style="display: flex; justify-content: space-around;">
+        <button
+          class="cnc-control-button"
+          (click)="handlePause($event)"
+        >
+          Pause
+        </button>
+        <button
+          class="cnc-control-button"
+          (click)="handleKill($event)"
+        >
+          Kill
+        </button>
+        <button
+          class="cnc-control-button"
+          (click)="handleResume($event)"
+        >
+          Resume
+        </button>
+      </div>
+    <br>
   </ng-container>
 </ng-container>

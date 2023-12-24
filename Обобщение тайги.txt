@@ -257,3 +257,6 @@ export interface Story {
 
 - обязательно необходимо прописать/переписать в API (который используется самим сайтом), методы для доступа к полю
 -- C:\Users\nikit\taiga\TaigaCNC\python\apps\taiga\src\taiga\stories\stories\api\__init__.py
+
+- и необходимо добавить сериализатор свиох ответов
+-- C:\Users\nikit\taiga\TaigaCNC\python\apps\taiga\src\taiga\stories\stories\serializers\__init__.py

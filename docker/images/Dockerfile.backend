@@ -36,6 +36,11 @@ RUN set -eux; \
     python -m pip install --upgrade pip wheel setuptools; \
     python -m pip install -r requirements.txt; \
     # =====================================
+    # install CNC requirements
+    apt-get install -y graphviz graphviz-dev; \
+    python -m pip install pygraphviz; \
+    python -m pip install django-extensions; \
+    # =====================================
     # create taiga group and user
     groupadd --system taiga --gid=999; \
     useradd --system --no-create-home --gid taiga --uid=999 --shell=/bin/bash taiga; \
