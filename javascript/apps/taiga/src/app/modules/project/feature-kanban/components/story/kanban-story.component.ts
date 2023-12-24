@@ -299,48 +299,37 @@ export class KanbanStoryComponent implements OnChanges, OnInit {
   public handlePause(event: MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
-
-    // Error fetch data
-    // try {
-    //   this.http.get(`${this.location.path()}/control/pause`).subscribe((data:any) => {
-    //     // Process the fetched data
-    //     console.error('We got some data:', data);
-    //   }, (error:any) => {
-    //     throw new Error('Failed to fetch data'); // Manually throwing an error for demonstration
-    //   });
-    // } catch (error) {
-    //   console.error('An error occurred while fetching data:', error);
-    //   console.error(`Another beautiful error: ${error}`);
-    //   // Handle the error or inform the user about the failure
-    // }
-    // var a = this.http
-    //         .get(`${this.location.href.path()}/control/pause`);
+    this.http.get(`api/v2/projects/${this.state.get('project').id}/stories/${this.story.ref}/control/pause`).subscribe(
+      {next:(data:any) => console.log(data)}
+    );
   }
   public handleKill(event: MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
 
     // Working perfectly
-    this.http.get(`project/${this.state.get('project').id}/stories/${this.story.ref}/control/kill`).subscribe({next:(data:any) => console.log(data)});
-    // console.log("asd");
-    // var a = this.http
-    //         .get(`${this.location}/control/kill`);
+    this.http.get(`api/v2/projects/${this.state.get('project').id}/stories/${this.story.ref}/control/kill`).subscribe(
+      {next:(data:any) => console.log(data)}
+    );
   }
   public handleResume(event: MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
 
-    // var a = this.http
-    //         .get(`${this.location.path()}/control/resume`);
+    this.http.get(`api/v2/projects/${this.state.get('project').id}/stories/${this.story.ref}/control/resume`).subscribe(
+      {next:(data:any) => console.log(data)}
+    );
+  }
 
-    // Doesn't use story id
-    // this.http.get(`${this.location.path()}/control/resume`).subscribe(
-    //           (data:any) => {
-    //             console.log(data);
-    //           },
-    //           (error:any) => {
-    //             console.error('Error occurred:', error);
-    //           }
-    //         );
+
+  public post_task(event: MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    var body = {file_name: "file1", estimated_time: 1, file: "aaa"};
+
+    this.http.post(`api/v2/projects/${this.state.get('project').id}/stories/${this.story.ref}/post_task`, body).subscribe(
+      {next:(data:any) => console.log(data)}
+    );
   }
 }
