@@ -218,9 +218,28 @@ Copyright (c) 2023-present Kaleidos INC
       </p>
     </ng-template>
     <br>
-      <div
+    <div
+      [ngClass]="{
+        'cnc-control-hidden': !vm.assignees.length,
+        'cnc-control': vm.assignees.length
+      }"
+      style="display: flex; justify-content: space-around;">
+      <!--
+      <p
+        class="cnc-progress">
+        {{ story.titleCNC }}
+      </p>
+    -->
+    
+      <div class="cnc-progress" style="display: block;">
+        <p>Total Progress</p>
+        <div class="progress"> <!-- <div *ngIf="progressData" class="progress">-->
+          <progress id="progress_bar" [value]="calculateProgressWidth()" max="100"></progress>
+        </div>
+      </div>
+      <p
         class="cnc-control" 
-        style="display: flex; justify-content: space-around;">
+        style="display: block; justify-content: space-around;">
         <button
           class="cnc-control-button"
           (click)="handlePause($event)"
@@ -239,14 +258,22 @@ Copyright (c) 2023-present Kaleidos INC
         >
           Resume
         </button>
-        <br>
+      </p>
+      <p
+        class="cnc-post" 
+        style="display: block; justify-content: space-around;">
+        <input
+          class="cnc-control-button"
+          type="file"
+          (change)="onFileSelected($event)"/>
         <button
           class="cnc-control-button"
           (click)="post_task($event)"
         >
           Post task
         </button>
-      </div>
+      </p>
+    </div>
     <br>
   </ng-container>
 </ng-container>

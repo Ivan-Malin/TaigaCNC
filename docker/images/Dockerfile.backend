@@ -38,6 +38,7 @@ RUN set -eux; \
     # =====================================
     # install CNC requirements
     apt-get install -y graphviz graphviz-dev; \
+    python -m pip install aiohttp; \
     python -m pip install pygraphviz; \
     python -m pip install django-extensions; \
     # =====================================

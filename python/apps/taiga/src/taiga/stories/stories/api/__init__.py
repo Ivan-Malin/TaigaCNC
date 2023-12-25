@@ -21,6 +21,8 @@ from taiga.stories.stories.api.validators import ReorderStoriesValidator, StoryV
 from taiga.stories.stories.models import Story
 from taiga.stories.stories.serializers import ReorderStoriesSerializer, StoryDetailSerializer, StorySummarySerializer, CNCControlStatusSerializer #
 from taiga.workflows.api import get_workflow_or_404
+from taiga.stories.stories import repositories as stories_repositories
+import aiohttp
 
 # PERMISSIONS
 LIST_STORIES = HasPerm("view_story")
@@ -35,6 +37,9 @@ DELETE_STORY = HasPerm("delete_story")
 STORY_DETAIL_200 = responses.http_status_200(model=StoryDetailSerializer)
 LIST_STORY_SUMMARY_200 = responses.http_status_200(model=list[StorySummarySerializer])
 REORDER_STORIES_200 = responses.http_status_200(model=ReorderStoriesSerializer)
+
+
+CNC_PORT = 7777
 
 
 ################################################
@@ -240,12 +245,16 @@ async def get_story_or_404(project_id: UUID, ref: int) -> Story:
 
 
 
-async def process_control_cnc(ref, control) -> CNCControlStatusSerializer:
-    return CNCControlStatusSerializer(
-        ref = ref,
-        control = control, # pause | kill | resume
-        state = control, # running | pause | idle
-        status = "Accepted") # Accepted | not accepted
+async def process_control_cnc(project_id, ref, control) -> CNCControlStatusSerializer:
+    # result = None
+    async with aiohttp.ClientSession() as session:
+        async with session.get(f"/projects/{project_id}/stories/{ref}/control/{control}") as response:
+            result = response.json()
+            return CNCControlStatusSerializer(
+                ref = result['ref'],
+                control = result['control'], # pause | kill | resume
+                state = result['state'], # running | pause | idle
+                status = result['status']) # Accepted | not accepted
 
 # Pause | kill | resume
 @routes.stories.get(
@@ -263,18 +272,33 @@ async def control_story_CNC(project_id: B64UUID, ref: int, control: str, request
     story = await get_story_or_404(project_id=project_id, ref=ref)
     # await check_permissions(permissions=UPDATE_STORY, user=request.user, obj=story)
 
-    return await process_control_cnc(ref = ref, control = control) # Accepted | not accepted
+    return await process_control_cnc(project_id = project_id, ref = ref, control = control) # Accepted | not accepted
 
 
 
 
 
-async def process_post_task_CNC(ref, control) -> CNCControlStatusSerializer:
+async def process_post_task_CNC(project_id, ref, data, control) -> CNCControlStatusSerializer:
+    result = None
+    async with aiohttp.ClientSession() as session:
+        async with session.post(f"/projects/{project_id}/stories/{ref}/post_task",data=data) as response:
+            result = response.json()
+    
+    async with aiohttp.ClientSession() as session:
+        async with session.get(f"/projects/{project_id}/stories/{ref}/get_title_cnc") as response:
+            result_titleCNC = response.json()
+            story = await get_story_or_404(project_id, ref)
+            stories_repositories.update_story(
+                id=story.id,
+                current_version=story,
+                values=update_values,
+            )
+            
     return CNCControlStatusSerializer(
-        ref = ref,
-        control = control, # pause | kill | resume
-        state = control, # running | pause | idle
-        status = "Accepted") # Accepted | not accepted
+        ref = result['ref'],
+        control = result['control'], # pause | kill | resume
+        state = result['state'], # running | pause | idle
+        status = result['status']) # Accepted | not accepted
 
 @routes.stories.post(
     "/projects/{project_id}/stories/{ref}/post_task",
@@ -298,4 +322,4 @@ async def post_task_CNC(
     print(values)
     # current_version = values.pop("version")
 
-    return await process_post_task_CNC(ref = ref, control = 'resume')
+    return await process_post_task_CNC(project_id = project_id, ref = ref, data = values, control = 'resume')

@@ -260,3 +260,39 @@ export interface Story {
 
 - и необходимо добавить сериализатор свиох ответов
 -- C:\Users\nikit\taiga\TaigaCNC\python\apps\taiga\src\taiga\stories\stories\serializers\__init__.py
+
+
+
+
+
+
+
+
+
+
+
+
+
+Формат очереди
+
+titleCNC = 
+'{
+  "files":
+  [
+   {
+    "file_name":"A",
+    "estimated_time":"1"
+   },
+   {
+    "file_name":"B",
+    "estimated_time":"1"
+   }
+  ]
+  "progress":
+  {
+    "remaining_all_time":1000,
+    "current_file_time":100,
+    "current_completed_file_time":10,
+    "state":"resumed" // paused, resumed, idle
+  }
+}'
