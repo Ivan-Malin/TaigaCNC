@@ -22,6 +22,7 @@ from taiga.stories.stories.models import Story
 from taiga.stories.stories.serializers import ReorderStoriesSerializer, StoryDetailSerializer, StorySummarySerializer, CNCControlStatusSerializer #
 from taiga.workflows.api import get_workflow_or_404
 from taiga.stories.stories import repositories as stories_repositories
+from taiga.conf import settings
 import aiohttp
 
 # PERMISSIONS
@@ -38,8 +39,6 @@ STORY_DETAIL_200 = responses.http_status_200(model=StoryDetailSerializer)
 LIST_STORY_SUMMARY_200 = responses.http_status_200(model=list[StorySummarySerializer])
 REORDER_STORIES_200 = responses.http_status_200(model=ReorderStoriesSerializer)
 
-
-CNC_PORT = 7777
 
 
 ################################################
@@ -245,10 +244,11 @@ async def get_story_or_404(project_id: UUID, ref: int) -> Story:
 
 
 
+# basic CNC server interface must be hosting on the same server
 async def process_control_cnc(project_id, ref, control) -> CNCControlStatusSerializer:
     # result = None
     async with aiohttp.ClientSession() as session:
-        async with session.get(f"/projects/{project_id}/stories/{ref}/control/{control}") as response:
+        async with session.get(f"{settings.CNC_URL}/projects/{project_id}/stories/{ref}/control/{control}") as response:
             result = response.json()
             return CNCControlStatusSerializer(
                 ref = result['ref'],
@@ -278,14 +278,15 @@ async def control_story_CNC(project_id: B64UUID, ref: int, control: str, request
 
 
 
+# basic CNC server interface must be hosting on the same server
 async def process_post_task_CNC(project_id, ref, data, control) -> CNCControlStatusSerializer:
     result = None
     async with aiohttp.ClientSession() as session:
-        async with session.post(f"/projects/{project_id}/stories/{ref}/post_task",data=data) as response:
+        async with session.post(f"{settings.CNC_URL}/projects/{project_id}/stories/{ref}/post_task",data=data) as response:
             result = response.json()
     
     async with aiohttp.ClientSession() as session:
-        async with session.get(f"/projects/{project_id}/stories/{ref}/get_title_cnc") as response:
+        async with session.get(f"{settings.CNC_URL}/projects/{project_id}/stories/{ref}/get_title_cnc") as response:
             result_titleCNC = response.json()
             story = await get_story_or_404(project_id, ref)
             values = {'titleCNC',str(result_titleCNC)}

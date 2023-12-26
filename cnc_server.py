@@ -3,7 +3,7 @@ import threading
 from threading import Thread
 import time
 
-PORT = 7776
+PORT = 7777
 
 global Title_CNC
 Title_CNC = {}

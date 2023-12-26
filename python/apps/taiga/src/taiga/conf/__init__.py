@@ -105,6 +105,12 @@ class Settings(BaseSettings):
     STORAGE: StorageSettings = StorageSettings()
     TASKQUEUE: TaskQueueSettings = TaskQueueSettings()
     TOKENS: TokensSettings = TokensSettings()
+    
+    # CNC
+    CNC_SERVER_PROTOCOL = "http"
+    CNC_SERVER_HOST = "localhost"
+    CNC_SERVER_PORT = "7777"
+    CNC_URL = f"{CNC_SERVER_PROTOCOL}://{CNC_SERVER_HOST}:{CNC_SERVER_PORT}"
 
     @validator("UUID_NODE", pre=False)
     def validate_uuid_node(cls, v: int | None) -> int | None:
