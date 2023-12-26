@@ -146,6 +146,22 @@ Copyright (c) 2023-present Kaleidos INC
   padding-inline: var(--spacing-8);
   position: relative;
 }
+.cnc-control,
+.cnc-post,
+.cnc-control-button  {
+  @mixin font-small;
+
+  border-radius: 4px;
+  color: var(--color-gray80);
+  display: inline-block;
+  padding-block: var(--spacing-4);
+  padding-inline: var(--spacing-8);
+  position: relative;
+}
+
+.cnc-control-hidden {
+  visibility:hidden;
+}
 
 .unassigned-button-perm {
   appearance: none;

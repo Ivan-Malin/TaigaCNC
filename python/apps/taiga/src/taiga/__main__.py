@@ -79,6 +79,65 @@ cli.add_typer(users_cli, name="users")
 def _run_api(**kwargs: Any) -> None:
     wsgi_app = os.getenv("TAIGA_WSGI_APP", "taiga.wsgi:app")
     uvicorn.run(wsgi_app, **kwargs)
+    
+
+# CNC
+# call_django_command("graph_models", all_applications=True, outputfile="structure.png")
+@cli.command(help="Generates UML diagram of taiga project.")
+def graph_models(
+    pygraphviz: bool = typer.Option(False, "--pygraphviz"),
+    pydot: bool = typer.Option(False, "--pydot"),
+    dot: bool = typer.Option(False, "--dot"),
+    json: bool = typer.Option(False, "--json"),
+    disable_fields: bool = typer.Option(False, "--disable-fields", "-d"),
+    disable_abstract_fields: bool = typer.Option(False, "--disable-abstract-fields"),
+    group_models: bool = typer.Option(False, "--group-models", "-g"),
+    all_applications: bool = typer.Option(True, "--all_applications", "-a"),
+    outputfile: str = typer.Option("structure.png", "--outputfile", "-o"),
+    layout: str = typer.Option("dot", "--layout", "-l"),
+    theme: str = typer.Option("django2018", "--theme", "-t"),
+    verbose_names: bool = typer.Option(False, "--verbose-names", "-n"),
+    language: str = typer.Option(None, "--language", "-L"),
+    exclude_columns: str = typer.Option(None, "--exclude-columns", "-x"),
+    exclude_models: str = typer.Option(None, "--exclude-models", "-X"),
+    include_models: str = typer.Option(None, "--include-models", "-I"),
+    inheritance: bool = typer.Option(True, "--inheritance", "-e"),
+    relations_as_fields: bool = typer.Option(True, "--hide-relations-from-fields", "-R"),
+    relation_fields_only: str = typer.Option(None, "--relation-fields-only"),
+    sort_fields: bool = typer.Option(True, "--disable-sort-fields", "-S"),
+    hide_edge_labels: bool = typer.Option(False, "--hide-edge-labels"),
+    arrow_shape: str = typer.Option("dot", "--arrow-shape"),
+    color_code_deletions: bool = typer.Option(False, "--color-code-deletions"),
+    rankdir: str = typer.Option("TB", "--rankdir")
+) -> None:
+    try:
+        call_django_command("graph_models",
+            pygraphviz=pygraphviz,
+            pydot=pydot,
+            dot=dot,
+            json=json,
+            disable_fields=disable_fields,
+            disable_abstract_fields=disable_abstract_fields,
+            group_models=group_models,
+            all_applications=all_applications,
+            outputfile=outputfile,
+            layout=layout,
+            theme=theme,
+            verbose_names=verbose_names,
+            language=language,
+            exclude_columns=exclude_columns,
+            exclude_models=exclude_models,
+            include_models=include_models,
+            inheritance=inheritance,
+            relations_as_fields=relations_as_fields,
+            relation_fields_only=relation_fields_only,
+            sort_fields=sort_fields,
+            hide_edge_labels=hide_edge_labels,
+            arrow_shape=arrow_shape,
+            color_code_deletions=color_code_deletions,
+            rankdir=rankdir)
+    except Exception as e:
+        print('making diagram resulted with error: ' + str(e))
 
 
 @cli.command(help="Run a Taiga server (dev mode).")

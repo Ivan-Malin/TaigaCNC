@@ -30,6 +30,9 @@ CSRF_TRUSTED_ORIGINS = [settings.BACKEND_URL]
 # Application definition
 
 INSTALLED_APPS = [
+    # ours cnc
+    "django_extensions",
+    
     "django.contrib.contenttypes",
     "django.contrib.auth",
     "django.contrib.admin",
@@ -166,3 +169,8 @@ ROOT_URLCONF = "taiga.base.django.urls"
 # easy_thumbnails
 
 THUMBNAIL_ALIASES = {"": settings.IMAGES.THUMBNAIL_ALIASES}
+
+GRAPH_MODELS = {
+  'all_applications': True,
+  'group_models': True,
+}

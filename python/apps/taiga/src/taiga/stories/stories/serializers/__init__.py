@@ -23,10 +23,16 @@ class StorySummarySerializer(BaseModel):
     class Config:
         orm_mode = True
 
+class CNCControlStatusSerializer(BaseModel):
+    ref: int        # UNIQUE, alternative key
+    control: str    # pause | kill | resume
+    state: str      # running | pause | idle
+    status: str     # Accepted | not accepted
 
 class StoryDetailSerializer(BaseModel):
     ref: int
     title: str
+    titleCNC: str | None = None
     description: str | None = None
     status: WorkflowStatusNestedSerializer
     workflow: WorkflowNestedSerializer

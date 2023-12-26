@@ -1,6 +1,6 @@
 {
-  "api": "http://localhost:9000/api/v2",
-  "ws": "ws://localhost:9000/evevnts",
+  "api": "http://192.168.0.10:9000/api/v2",
+  "ws": "ws://192.168.0.10:9000/evevnts",
   "supportEmail": "malili2003li@gmail.com",
   "social": {
     "github": {

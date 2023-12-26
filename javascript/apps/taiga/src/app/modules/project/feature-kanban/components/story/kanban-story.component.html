@@ -47,6 +47,25 @@ Copyright (c) 2023-present Kaleidos INC
         </div>
       </a>
       <div class="story-body">
+        <div class="text">
+          {{ story.title }}
+          <ng-container *hasPermission="['modify']; entity: 'story'">
+            <span
+              class="visually-hidden"
+              *ngIf="!vm.isA11yDragInProgress"
+              >{{
+                t('kanban.story_title_a11y', {
+                  position: index + 1,
+                  total: total
+                })
+              }}
+            </span>
+          </ng-container>
+        </div>
+        <br>
+        <div class="text">
+          {{ story.titleCNC }} 
+        </div>    
         <ng-container
           *hasPermission="
             ['modify'];
@@ -198,5 +217,60 @@ Copyright (c) 2023-present Kaleidos INC
         }}
       </p>
     </ng-template>
+    <br>
+    <div
+      [ngClass]="{
+        'cnc-control-hidden': !vm.assignees.length,
+        'cnc-control': vm.assignees.length
+      }">
+      <!--
+      <p
+        class="cnc-progress">
+        {{ story.titleCNC }}
+      </p>
+    -->
+    
+      <!-- <div class="cnc-progress" style="display: block;">
+        <p>Total Progress</p>
+        <div class="progress">
+          <progress id="progress_bar" [value]="calculateProgressWidth()" max="100"></progress>
+        </div>
+      </div> -->
+      <div
+        class="cnc-control">
+        <button
+          class="cnc-control-button"
+          (click)="handlePause($event)"
+        >
+          Pause
+        </button>
+        <button
+          class="cnc-control-button"
+          (click)="handleKill($event)"
+        >
+          Kill
+        </button>
+        <button
+          class="cnc-control-button"
+          (click)="handleResume($event)"
+        >
+          Resume
+        </button>
+      </div>
+      <div
+        class="cnc-post">
+        <input
+          class="cnc-control-button"
+          type="file"
+          (change)="onFileSelected($event)"/>
+        <button
+          class="cnc-control-button"
+          (click)="post_task($event)"
+        >
+          Post task
+        </button>
+      </div>
+    </div>
+    <br>
   </ng-container>
 </ng-container>

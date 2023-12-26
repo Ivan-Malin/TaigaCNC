@@ -41,6 +41,9 @@ import { HasPermissionDirective } from '~/app/shared/directives/has-permissions/
 import { OutsideClickDirective } from '~/app/shared/directives/outside-click/outside-click.directive';
 import { UserAvatarComponent } from '~/app/shared/user-avatar/user-avatar.component';
 import { AssignUserComponent } from '~/app/modules/project/components/assign-user/assign-user.component';
+import { Observable } from 'rxjs';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
+
 
 export interface StoryState {
   isA11yDragInProgress: boolean;
@@ -51,6 +54,7 @@ export interface StoryState {
   canEdit: boolean;
 }
 
+// model$ is forwardly reffering to this.state dict. If we want to bypass variables, we can use vm (i.e. this.state)
 @UntilDestroy()
 @Component({
   selector: 'tg-kanban-story',
@@ -71,6 +75,7 @@ export interface StoryState {
     AssignUserComponent,
     OutsideClickDirective,
     SlicePipe,
+    HttpClientModule,
     forwardRef(() => KanbanStatusComponent),
   ],
 })
@@ -87,6 +92,10 @@ export class KanbanStoryComponent implements OnChanges, OnInit {
 
   @Input()
   public kanbanStatus?: KanbanStatusComponent;
+
+
+  @Input()
+  public progressData: any;
 
   @HostBinding('attr.data-test')
   public dataTest = 'kanban-story';
@@ -117,7 +126,8 @@ export class KanbanStoryComponent implements OnChanges, OnInit {
     private location: Location,
     private store: Store,
     private el: ElementRef,
-    private permissionService: PermissionsService
+    private permissionService: PermissionsService,
+    private http: HttpClient
   ) {
     this.state.set({
       assignees: [],
@@ -145,6 +155,10 @@ export class KanbanStoryComponent implements OnChanges, OnInit {
       'canEdit',
       this.permissionService.hasPermissions$('story', ['modify'])
     );
+    // this.state.connect(
+    //   'isCNC',
+    //   this.permissionService.hasPermissions$('story', ['modify'])
+    // );
 
     this.state.hold(this.state.select('currentUser'), () => {
       this.setAssigneesInState();
@@ -159,6 +173,13 @@ export class KanbanStoryComponent implements OnChanges, OnInit {
         this.scrollToDragStoryIfNotVisible();
       });
     }
+    // var updatedStory = changes.story.currentValue as KanbanStory; // Type assertion to KanbanStory
+    //   if (updatedStory.titleCNC) {
+    //     // (KanbanStory) changes.story
+    //     // this.progressData = JSON.parse(changes.story.titleCNC.currentValue);
+    //     this.progressData = JSON.parse(updatedStory.titleCNC);
+    //   }
+  
 
     if (changes.story && this.state.get('currentUser')) {
       this.setAssigneesInState();
@@ -284,4 +305,80 @@ export class KanbanStoryComponent implements OnChanges, OnInit {
       }
     }
   }
+
+
+
+  public handlePause(event: MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.http.get(`api/v2/projects/${this.state.get('project').id}/stories/${this.story.ref}/control/pause`).subscribe(
+      {next:(data:any) => console.log(data)}
+    );
+  }
+  public handleKill(event: MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    // Working perfectly
+    this.http.get(`api/v2/projects/${this.state.get('project').id}/stories/${this.story.ref}/control/kill`).subscribe(
+      {next:(data:any) => console.log(data)}
+    );
+  }
+  public handleResume(event: MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    this.http.get(`api/v2/projects/${this.state.get('project').id}/stories/${this.story.ref}/control/resume`).subscribe(
+      {next:(data:any) => console.log(data)}
+    );
+  }
+
+  @Input()
+  public file: string | ArrayBuffer | null = "";
+  @Input()
+  public file_name = "";
+  @Input()
+  public estimated_time = 0;
+  // @Input()
+  // public is_CNC = false;
+
+
+  // files methods (events)
+  public onFileSelected(event: any) {
+    const selectedFile = event.target.files[0];
+    if (selectedFile) {
+      this.file_name = selectedFile.name;
+      const reader = new FileReader();
+      reader.readAsDataURL(selectedFile);
+      reader.onload = () => {
+          console.log("Selected file:", reader.result);
+          this.file = reader.result;
+      };
+      // Do something with the selected file, such as uploading it to a server or processing it
+      console.log('Selected file_name:', selectedFile.name);
+    }
+  }
+
+
+  public post_task(event: MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    var body = {file_name: this.file_name, estimated_time: this.estimated_time, file: this.file};
+
+    this.http.post(`api/v2/projects/${this.state.get('project').id}/stories/${this.story.ref}/post_task`, body).subscribe(
+      {next:(data:any) => console.log(data)}
+    );
+  }
+  // calculateProgressWidth(): number {
+  //   const remainingTime = this.progressData.progress.remaining_all_time;
+  //   const completedTime = this.getTotalCompletedTime();
+  //   console.log(`${((completedTime / remainingTime) * 100)} width progress bars`);
+  //   return ((completedTime / remainingTime) * 100);
+  // }
+
+  // getTotalCompletedTime(): number {
+  //   return this.progressData.files.reduce((total: number, estimated_time : string) => total + parseInt(estimated_time), 0);
+  // }
+  
 }

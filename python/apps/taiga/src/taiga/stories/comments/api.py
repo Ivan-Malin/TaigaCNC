@@ -26,6 +26,7 @@ from taiga.routers import routes
 from taiga.stories.comments import events, notifications
 from taiga.stories.stories.api import get_story_or_404
 from taiga.stories.stories.models import Story
+from taiga.base.serializers.fields import UUIDB64, CamelizeDict, FileField
 
 # PERMISSIONS
 CREATE_STORY_COMMENT = HasPerm("comment_story")
