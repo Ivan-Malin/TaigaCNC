@@ -173,12 +173,12 @@ export class KanbanStoryComponent implements OnChanges, OnInit {
         this.scrollToDragStoryIfNotVisible();
       });
     }
-    var updatedStory = changes.story.currentValue as KanbanStory; // Type assertion to KanbanStory
-      if (updatedStory.titleCNC) {
-        // (KanbanStory) changes.story
-        // this.progressData = JSON.parse(changes.story.titleCNC.currentValue);
-        this.progressData = JSON.parse(updatedStory.titleCNC);
-      }
+    // var updatedStory = changes.story.currentValue as KanbanStory; // Type assertion to KanbanStory
+    //   if (updatedStory.titleCNC) {
+    //     // (KanbanStory) changes.story
+    //     // this.progressData = JSON.parse(changes.story.titleCNC.currentValue);
+    //     this.progressData = JSON.parse(updatedStory.titleCNC);
+    //   }
   
 
     if (changes.story && this.state.get('currentUser')) {
@@ -370,15 +370,15 @@ export class KanbanStoryComponent implements OnChanges, OnInit {
       {next:(data:any) => console.log(data)}
     );
   }
-  calculateProgressWidth(): number {
-    const remainingTime = this.progressData.progress.remaining_all_time;
-    const completedTime = this.getTotalCompletedTime();
-    console.log(`${((completedTime / remainingTime) * 100)} width progress bars`);
-    return ((completedTime / remainingTime) * 100);
-  }
+  // calculateProgressWidth(): number {
+  //   const remainingTime = this.progressData.progress.remaining_all_time;
+  //   const completedTime = this.getTotalCompletedTime();
+  //   console.log(`${((completedTime / remainingTime) * 100)} width progress bars`);
+  //   return ((completedTime / remainingTime) * 100);
+  // }
 
-  getTotalCompletedTime(): number {
-    return this.progressData.files.reduce((total: number, estimated_time : string) => total + parseInt(estimated_time), 0);
-  }
+  // getTotalCompletedTime(): number {
+  //   return this.progressData.files.reduce((total: number, estimated_time : string) => total + parseInt(estimated_time), 0);
+  // }
   
 }

@@ -288,10 +288,11 @@ async def process_post_task_CNC(project_id, ref, data, control) -> CNCControlSta
         async with session.get(f"/projects/{project_id}/stories/{ref}/get_title_cnc") as response:
             result_titleCNC = response.json()
             story = await get_story_or_404(project_id, ref)
+            values = {'titleCNC',str(result_titleCNC)}
             stories_repositories.update_story(
                 id=story.id,
-                current_version=story,
-                values=update_values,
+                current_version=0,  # titleCNC is not in protected args, it means that script don't use current_version id
+                values=values,
             )
             
     return CNCControlStatusSerializer(
