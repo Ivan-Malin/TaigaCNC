@@ -57,6 +57,9 @@ services:
       retries: 5
     ports:
       - "7777:7777"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
 
   taiga-worker:
     image: taigaio/backend:alpha

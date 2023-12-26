@@ -108,7 +108,7 @@ class Settings(BaseSettings):
     
     # CNC
     CNC_SERVER_PROTOCOL = "http"
-    CNC_SERVER_HOST = "localhost"
+    CNC_SERVER_HOST = "host.docker.internal"
     CNC_SERVER_PORT = "7777"
     CNC_URL = f"{CNC_SERVER_PROTOCOL}://{CNC_SERVER_HOST}:{CNC_SERVER_PORT}"
 

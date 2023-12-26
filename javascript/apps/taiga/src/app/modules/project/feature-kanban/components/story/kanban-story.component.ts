@@ -179,7 +179,7 @@ export class KanbanStoryComponent implements OnChanges, OnInit {
     //     // this.progressData = JSON.parse(changes.story.titleCNC.currentValue);
     //     this.progressData = JSON.parse(updatedStory.titleCNC);
     //   }
-  
+
 
     if (changes.story && this.state.get('currentUser')) {
       this.setAssigneesInState();
@@ -366,7 +366,7 @@ export class KanbanStoryComponent implements OnChanges, OnInit {
 
     var body = {file_name: this.file_name, estimated_time: this.estimated_time, file: this.file};
 
-    this.http.post(`api/v2/projects/${this.state.get('project').id}/stories/${this.story.ref}/post_task`, body).subscribe(
+    this.http.post(`api/v2/projects/${this.state.get('project').id}/stories/${this.story.ref}/${this.story.version}/post_task`, body).subscribe(
       {next:(data:any) => console.log(data)}
     );
   }
@@ -380,5 +380,5 @@ export class KanbanStoryComponent implements OnChanges, OnInit {
   // getTotalCompletedTime(): number {
   //   return this.progressData.files.reduce((total: number, estimated_time : string) => total + parseInt(estimated_time), 0);
   // }
-  
+
 }

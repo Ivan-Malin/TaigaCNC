@@ -6,6 +6,7 @@
 # Copyright (c) 2023-present Kaleidos INC
 
 from uuid import UUID
+import logging
 
 from fastapi import Depends, status
 from starlette.responses import Response
@@ -24,6 +25,8 @@ from taiga.workflows.api import get_workflow_or_404
 from taiga.stories.stories import repositories as stories_repositories
 from taiga.conf import settings
 import aiohttp
+
+logger = logging.getLogger(__name__)
 
 # PERMISSIONS
 LIST_STORIES = HasPerm("view_story")
@@ -249,7 +252,7 @@ async def process_control_cnc(project_id, ref, control) -> CNCControlStatusSeria
     # result = None
     async with aiohttp.ClientSession() as session:
         async with session.get(f"{settings.CNC_URL}/projects/{project_id}/stories/{ref}/control/{control}") as response:
-            result = response.json()
+            result = await response.json()
             return CNCControlStatusSerializer(
                 ref = result['ref'],
                 control = result['control'], # pause | kill | resume
@@ -279,21 +282,34 @@ async def control_story_CNC(project_id: B64UUID, ref: int, control: str, request
 
 
 # basic CNC server interface must be hosting on the same server
-async def process_post_task_CNC(project_id, ref, data, control) -> CNCControlStatusSerializer:
+async def process_post_task_CNC(project_id, ref, version, data, control) -> CNCControlStatusSerializer:
     result = None
     async with aiohttp.ClientSession() as session:
         async with session.post(f"{settings.CNC_URL}/projects/{project_id}/stories/{ref}/post_task",data=data) as response:
-            result = response.json()
+            result = await response.json()
     
     async with aiohttp.ClientSession() as session:
         async with session.get(f"{settings.CNC_URL}/projects/{project_id}/stories/{ref}/get_title_cnc") as response:
-            result_titleCNC = response.json()
+            result_titleCNC = await response.json()
             story = await get_story_or_404(project_id, ref)
-            values = {'titleCNC',str(result_titleCNC)}
-            stories_repositories.update_story(
+            values = [['titleCNC',str(result_titleCNC)],['title',str(result_titleCNC)]]
+            logger.info(
+                f"""Trying to update story
+titleCNC: {logger},
+values: {values},
+"""
+            )
+            await stories_repositories.update_story(
                 id=story.id,
-                current_version=0,  # titleCNC is not in protected args, it means that script don't use current_version id
+                current_version=version,  # titleCNC is not in protected args, it means that script don't use current_version id
                 values=values,
+            )
+            logger.info(f"""
+stories_repositories.update_story(
+    id={story.id},
+    current_version={version},  # titleCNC is not in protected args, it means that script don't use current_version id
+    values={values},
+)"""
             )
             
     return CNCControlStatusSerializer(
@@ -303,7 +319,7 @@ async def process_post_task_CNC(project_id, ref, data, control) -> CNCControlSta
         status = result['status']) # Accepted | not accepted
 
 @routes.stories.post(
-    "/projects/{project_id}/stories/{ref}/post_task",
+    "/projects/{project_id}/stories/{ref}/{version}/post_task",
     name="project.stories.post",
     summary="Posts task to CNC",
     responses=STORY_DETAIL_200 | ERROR_403 | ERROR_404 | ERROR_422,
@@ -312,6 +328,7 @@ async def process_post_task_CNC(project_id, ref, data, control) -> CNCControlSta
 async def post_task_CNC(
     project_id: B64UUID,
     ref: int,
+    version: int,
     request: AuthRequest,
     form: CNCFileValidator,
 ) -> CNCControlStatusSerializer:
@@ -324,4 +341,4 @@ async def post_task_CNC(
     print(values)
     # current_version = values.pop("version")
 
-    return await process_post_task_CNC(project_id = project_id, ref = ref, data = values, control = 'resume')
+    return await process_post_task_CNC(project_id = project_id, ref = ref, version=version, data = values, control = 'resume')

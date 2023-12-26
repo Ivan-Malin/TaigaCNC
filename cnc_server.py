@@ -8,11 +8,11 @@ PORT = 7777
 global Title_CNC
 Title_CNC = {}
 
-async def process_control_cnc(ref, control):
+async def process_control_cnc(ref, control, state):
     return {
         "ref": ref,
         "control": control,
-        "state": control,  # running | pause | idle
+        "state": state,  # running | pause | idle
         "status": "Accepted"  # Accepted | not accepted
     }
 
@@ -34,7 +34,7 @@ async def control_story_CNC(request):
     # Here you can perform any required logic, such as checking permissions
     # ...
 
-    result = await process_control_cnc(ref=ref, control=control)
+    result = await process_control_cnc(ref=ref, control=control, state=CNCs[key].state)
     return web.json_response(result)
 
 
@@ -43,10 +43,19 @@ async def control_story_CNC(request):
 async def post_task_CNC(request):
     project_id = request.match_info['project_id']
     ref = int(request.match_info['ref'])
-    data = await request.json()
+    key = (project_id, ref)
+    # print(await request.post())
+    # print(await request.post().json())
+    data = await request.post()
 
     if not (('file_name' in data.keys()) and ('estimated_time' in data.keys()) and ('file' in data.keys())):
         return web.HTTPPartialContent(text=f"Keyset {data.keys()} is not full")
+    try:
+        et = int(data['estimated_time'])
+        data = dict(data)
+        data['estimated_time'] = et
+    except Exception as e:
+        print(f'Failed to get posted task: {e}')
         
     # Here you can perform any required logic, such as checking permissions
     # ...
@@ -66,7 +75,7 @@ async def post_task_CNC(request):
     print(f"Added file {data['file_name']} with time {data['estimated_time']}")
 
     # result = await process_post_task_CNC(ref=ref, control='resume')
-    result = await process_control_cnc(ref=ref, control='resume')
+    result = await process_control_cnc(ref=ref, control='resume', state=CNCs[key].state)
     return web.json_response(result)
 
 # async def get_title_cnc_info():
@@ -178,6 +187,9 @@ class CNCcontrol:
     cnc: CNC
     ID: str
     t: Thread
+    @property
+    def state(self):
+        return self.cnc.state
     def __init__(self,key):
         self.cnc = CNC(key)
         self.ID = key
