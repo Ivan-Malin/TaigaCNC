@@ -19,7 +19,8 @@ import {
   forwardRef,
   ViewChild,
   Renderer2,
-  ChangeDetectorRef 
+  ChangeDetectorRef,
+  DoCheck
 } from '@angular/core';
 import { UntilDestroy } from '@ngneat/until-destroy';
 import { Store } from '@ngrx/store';
@@ -82,7 +83,7 @@ export interface StoryState {
     forwardRef(() => KanbanStatusComponent),
   ],
 })
-export class KanbanStoryComponent implements OnChanges, OnInit {
+export class KanbanStoryComponent implements OnChanges, OnInit,DoCheck {
   @Input()
   public story!: KanbanStory;
 
@@ -117,7 +118,37 @@ export class KanbanStoryComponent implements OnChanges, OnInit {
   public reversedAssignees: Membership['user'][] = [];
   public restAssigneesLenght = '';
   public cardHasFocus = false;
-
+  public titleCNC = `{
+    "files": [
+      {
+        "file_name": "A",
+        "estimated_time": "1"
+      },
+      {
+        "file_name": "B",
+        "estimated_time": "1"
+      },
+      {
+        "file_name": "C",
+        "estimated_time": "1"
+      },
+      {
+        "file_name": "D",
+        "estimated_time": "1"
+      },
+      {
+        "file_name": "E",
+        "estimated_time": "1"
+      }
+    ],
+    "progress": {
+      "remaining_all_time": 1000,
+      "current_file_time": 100,
+      "current_completed_file_time": 90,
+      "state": "resumed"
+    }
+  }`;
+  private previousTitleCNC: any;
   public readonly model$ = this.state.select();
 
   public get nativeElement() {
@@ -201,7 +232,17 @@ export class KanbanStoryComponent implements OnChanges, OnInit {
     }
     this.showTaskCNC();
   }
-
+  ngDoCheck() {
+    if (this.titleCNC !== this.previousTitleCNC) {
+      // Реагируйте на изменение переменной здесь
+      console.log('Значение переменной titleCNC изменилось:', this.titleCNC);
+      
+      // Выполните необходимые действия при изменении переменной
+      
+      // Обновите предыдущее значение переменной
+      this.previousTitleCNC = this.titleCNC;
+    }
+  }
   public setAssigneesInState() {
     const assignees: Membership['user'][] = [];
 
@@ -397,38 +438,8 @@ export class KanbanStoryComponent implements OnChanges, OnInit {
   public showTaskCNC() : void{
      // Implement ngOnInit logic here
      console.log(`ngOnInit taiga CNC`);
-     const titleCNC = `{
-       "files": [
-         {
-           "file_name": "A",
-           "estimated_time": "1"
-         },
-         {
-           "file_name": "B",
-           "estimated_time": "1"
-         },
-         {
-           "file_name": "C",
-           "estimated_time": "1"
-         },
-         {
-           "file_name": "D",
-           "estimated_time": "1"
-         },
-         {
-           "file_name": "E",
-           "estimated_time": "1"
-         }
-       ],
-       "progress": {
-         "remaining_all_time": 1000,
-         "current_file_time": 100,
-         "current_completed_file_time": 90,
-         "state": "resumed"
-       }
-     }`;
  
-     const data = JSON.parse(titleCNC);
+     const data = JSON.parse(this.titleCNC);
      
      let table = this.renderer.selectRootElement('.tasks_cnc');
      let remainingTime = this.renderer.selectRootElement('.remainingTime');
