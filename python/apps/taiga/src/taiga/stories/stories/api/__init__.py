@@ -288,29 +288,34 @@ async def process_post_task_CNC(project_id, ref, version, data, control) -> CNCC
         async with session.post(f"{settings.CNC_URL}/projects/{project_id}/stories/{ref}/post_task",data=data) as response:
             result = await response.json()
     
+    values = None
     async with aiohttp.ClientSession() as session:
         async with session.get(f"{settings.CNC_URL}/projects/{project_id}/stories/{ref}/get_title_cnc") as response:
             result_titleCNC = await response.json()
             story = await get_story_or_404(project_id, ref)
-            values = [['titleCNC',str(result_titleCNC)],['title',str(result_titleCNC)]]
-            logger.info(
-                f"""Trying to update story
-titleCNC: {logger},
-values: {values},
-"""
-            )
-            await stories_repositories.update_story(
-                id=story.id,
-                current_version=version,  # titleCNC is not in protected args, it means that script don't use current_version id
-                values=values,
-            )
-            logger.info(f"""
-stories_repositories.update_story(
-    id={story.id},
-    current_version={version},  # titleCNC is not in protected args, it means that script don't use current_version id
-    values={values},
-)"""
-            )
+            values = [['titleCNC',str(result_titleCNC)],['title',str(result_titleCNC)],["version",str(version)]]
+            
+    async with aiohttp.ClientSession() as session:
+        async with session.patch(f"/api/v2//projects/{project_id}/stories/{ref}",data=values) as response:
+            logger.info(f"""Trying to update story {response.text()}""")
+#             logger.info(
+#                 f"""Trying to update story
+# titleCNC: {logger},
+# values: {values},
+# """
+#             )
+#             await stories_repositories.update_story(
+#                 id=story.id,
+#                 current_version=version,  # titleCNC is not in protected args, it means that script don't use current_version id
+#                 values=values,
+#             )
+#             logger.info(f"""
+# stories_repositories.update_story(
+#     id={story.id},
+#     current_version={version},  # titleCNC is not in protected args, it means that script don't use current_version id
+#     values={values},
+# )"""
+#             )
             
     return CNCControlStatusSerializer(
         ref = result['ref'],
