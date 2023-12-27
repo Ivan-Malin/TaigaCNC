@@ -139,7 +139,7 @@ export class KanbanStoryComponent implements OnChanges, OnInit {
     this.state.connect(
       'isA11yDragInProgress',
       this.store.select(selectActiveA11yDragDropStory).pipe(
-        map((it) => it.ref === this.story.ref),
+        map((it: { ref: any; }) => it.ref === this.story.ref),
         distinctUntilChanged()
       )
     );
@@ -165,6 +165,77 @@ export class KanbanStoryComponent implements OnChanges, OnInit {
       this.setAssignedListA11y();
       this.calculateRestAssignes();
     });
+    // Implement ngOnInit logic here
+    window.onload = () => {
+      let titleCNC = `{
+        "files":
+        [
+         {
+          "file_name":"A",
+          "estimated_time":"1"
+         },
+         {
+          "file_name":"B",
+          "estimated_time":"1"
+         },
+         {
+          "file_name":"C",
+          "estimated_time":"1"
+         },
+         {
+          "file_name":"D",
+          "estimated_time":"1"
+         },
+        {
+          "file_name":"E",
+          "estimated_time":"1"
+         }
+        ],
+        "progress":
+        {
+          "remaining_all_time":1000,
+          "current_file_time":100,
+          "current_completed_file_time":90,
+          "state":"resumed"
+        }
+      }`;
+    
+      let data = JSON.parse(titleCNC);
+    
+      let table = document.querySelector('table.tasks_cnc tbody') as HTMLTableElement | null;
+      let remainingTime = document.getElementById('remainingTime');
+      let currentTaskName = document.getElementById('currentTaskName');
+      let progressText = document.getElementById('progressText');
+      let progressBar = document.querySelector('.progress') as HTMLElement | null;
+    
+      if (remainingTime && currentTaskName && progressText && progressBar && table) {
+        remainingTime.textContent = "Текущие задачи: " + data.progress.remaining_all_time;
+        currentTaskName.textContent = data.files[0]?.file_name;
+    
+        // Calculate the progress percentage
+        let progressPercentage = ((data.progress.current_completed_file_time ?? 0) / (data.progress.current_file_time ?? 1)) * 100;
+        progressText.textContent = `${data.progress.current_completed_file_time ?? 0} / ${data.progress.current_file_time ?? 1}`;
+        if (progressBar) {
+          progressBar.style.width = `${progressPercentage}%`;
+        }
+    
+        // Add rows to the table equal to the length of files
+        while (table.rows.length < data.files.length) {
+            table.insertRow();
+        }
+    
+        // Update the cells with file_name and estimated_time
+        data.files.forEach((item: { file_name: string; estimated_time: string; }, index: number) => {
+            if (table) {
+              let tr: HTMLTableRowElement = table.rows[index];
+              let td1 = tr.cells[0] || tr.insertCell(0);
+              let td2 = tr.cells[1] || tr.insertCell(1);
+              td1.innerText = item.file_name;
+              td2.innerText = item.estimated_time;
+            }
+        });
+      }
+    };
   }
 
   public ngOnChanges(changes: SimpleChanges): void {
@@ -191,11 +262,11 @@ export class KanbanStoryComponent implements OnChanges, OnInit {
   public setAssigneesInState() {
     const assignees: Membership['user'][] = [];
 
-    const currentUserMember = this.story.assignees.find((member) => {
+    const currentUserMember = this.story.assignees.find((member: { username: any; }) => {
       return member.username === this.state.get('currentUser').username;
     });
 
-    const members = this.story.assignees.filter((member) => {
+    const members = this.story.assignees.filter((member: { username: any; }) => {
       if (member.username === this.state.get('currentUser').username) {
         return false;
       }
@@ -206,7 +277,7 @@ export class KanbanStoryComponent implements OnChanges, OnInit {
     if (currentUserMember) {
       assignees.push(currentUserMember);
     }
-    members.forEach((member) => assignees.push(member));
+    members.forEach((member: Pick<User, "username" | "fullName" | "color">) => assignees.push(member));
     // Required for styling reasons (inverted flex)
     this.reversedAssignees = [...assignees].reverse();
 
@@ -216,7 +287,7 @@ export class KanbanStoryComponent implements OnChanges, OnInit {
   public setAssignedListA11y() {
     this.assignedListA11y = this.state
       .get('assignees')
-      .map((assigned) => assigned.fullName)
+      .map((assigned: { fullName: any; }) => assigned.fullName)
       .join(', ');
   }
 

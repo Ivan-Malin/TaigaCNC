@@ -227,12 +227,24 @@ Copyright (c) 2023-present Kaleidos INC
       </p>
     -->
 
-      <!-- <div class="cnc-progress" style="display: block;">
-        <p>Total Progress</p>
-        <div class="progress">
-          <progress id="progress_bar" [value]="calculateProgressWidth()" max="100"></progress>
+      <p id="remainingTime"></p>
+      <table class="tasks_cnc">
+        <tbody>
+          <tr>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td id="currentTaskName"></td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="progress-bar" style="position: relative;">
+        <span id="progressText" style="position: absolute; left: 40%;z-index: 1;"></span>
+        <div class="progress" style="width: 20%; position: relative;">
         </div>
-      </div> -->
+      </div>
       <div 
         class="cnc-control">
         <button
