@@ -17,6 +17,9 @@ import {
   OnInit,
   SimpleChanges,
   forwardRef,
+  ViewChild,
+  Renderer2,
+  ChangeDetectorRef 
 } from '@angular/core';
 import { UntilDestroy } from '@ngneat/until-destroy';
 import { Store } from '@ngrx/store';
@@ -127,7 +130,9 @@ export class KanbanStoryComponent implements OnChanges, OnInit {
     private store: Store,
     private el: ElementRef,
     private permissionService: PermissionsService,
-    private http: HttpClient
+    private http: HttpClient,
+    private renderer: Renderer2,
+    private cdr: ChangeDetectorRef
   ) {
     this.state.set({
       assignees: [],
@@ -165,78 +170,15 @@ export class KanbanStoryComponent implements OnChanges, OnInit {
       this.setAssignedListA11y();
       this.calculateRestAssignes();
     });
-    // Implement ngOnInit logic here
-    window.onload = () => {
-      let titleCNC = `{
-        "files":
-        [
-         {
-          "file_name":"A",
-          "estimated_time":"1"
-         },
-         {
-          "file_name":"B",
-          "estimated_time":"1"
-         },
-         {
-          "file_name":"C",
-          "estimated_time":"1"
-         },
-         {
-          "file_name":"D",
-          "estimated_time":"1"
-         },
-        {
-          "file_name":"E",
-          "estimated_time":"1"
-         }
-        ],
-        "progress":
-        {
-          "remaining_all_time":1000,
-          "current_file_time":100,
-          "current_completed_file_time":90,
-          "state":"resumed"
-        }
-      }`;
-    
-      let data = JSON.parse(titleCNC);
-    
-      let table = document.querySelector('table.tasks_cnc tbody') as HTMLTableElement | null;
-      let remainingTime = document.getElementById('remainingTime');
-      let currentTaskName = document.getElementById('currentTaskName');
-      let progressText = document.getElementById('progressText');
-      let progressBar = document.querySelector('.progress') as HTMLElement | null;
-    
-      if (remainingTime && currentTaskName && progressText && progressBar && table) {
-        remainingTime.textContent = "Текущие задачи: " + data.progress.remaining_all_time;
-        currentTaskName.textContent = data.files[0]?.file_name;
-    
-        // Calculate the progress percentage
-        let progressPercentage = ((data.progress.current_completed_file_time ?? 0) / (data.progress.current_file_time ?? 1)) * 100;
-        progressText.textContent = `${data.progress.current_completed_file_time ?? 0} / ${data.progress.current_file_time ?? 1}`;
-        if (progressBar) {
-          progressBar.style.width = `${progressPercentage}%`;
-        }
-    
-        // Add rows to the table equal to the length of files
-        while (table.rows.length < data.files.length) {
-            table.insertRow();
-        }
-    
-        // Update the cells with file_name and estimated_time
-        data.files.forEach((item: { file_name: string; estimated_time: string; }, index: number) => {
-            if (table) {
-              let tr: HTMLTableRowElement = table.rows[index];
-              let td1 = tr.cells[0] || tr.insertCell(0);
-              let td2 = tr.cells[1] || tr.insertCell(1);
-              td1.innerText = item.file_name;
-              td2.innerText = item.estimated_time;
-            }
-        });
-      }
-    };
+   
   }
+  ngAfterViewInit() {
+    this.showTaskCNC();
+    this.cdr.detectChanges();
+    console.log(`story.titleCNC`);
+    console.log(this.story.titleCNC);
+  }
+
 
   public ngOnChanges(changes: SimpleChanges): void {
     if (changes.story && this.story._shadow) {
@@ -257,6 +199,7 @@ export class KanbanStoryComponent implements OnChanges, OnInit {
       this.setAssignedListA11y();
       this.calculateRestAssignes();
     }
+    this.showTaskCNC();
   }
 
   public setAssigneesInState() {
@@ -451,5 +394,73 @@ export class KanbanStoryComponent implements OnChanges, OnInit {
   // getTotalCompletedTime(): number {
   //   return this.progressData.files.reduce((total: number, estimated_time : string) => total + parseInt(estimated_time), 0);
   // }
-
+  public showTaskCNC() : void{
+     // Implement ngOnInit logic here
+     console.log(`ngOnInit taiga CNC`);
+     const titleCNC = `{
+       "files": [
+         {
+           "file_name": "A",
+           "estimated_time": "1"
+         },
+         {
+           "file_name": "B",
+           "estimated_time": "1"
+         },
+         {
+           "file_name": "C",
+           "estimated_time": "1"
+         },
+         {
+           "file_name": "D",
+           "estimated_time": "1"
+         },
+         {
+           "file_name": "E",
+           "estimated_time": "1"
+         }
+       ],
+       "progress": {
+         "remaining_all_time": 1000,
+         "current_file_time": 100,
+         "current_completed_file_time": 90,
+         "state": "resumed"
+       }
+     }`;
+ 
+     const data = JSON.parse(titleCNC);
+     
+     let table = this.renderer.selectRootElement('.tasks_cnc');
+     let remainingTime = this.renderer.selectRootElement('.remainingTime');
+     let currentTaskName = this.renderer.selectRootElement('.currentTaskName');
+     let progressText = this.renderer.selectRootElement('.progressText');
+     let progressBar = this.renderer.selectRootElement('.progress');
+     console.log(table);
+     console.log(remainingTime);
+     console.log(currentTaskName);
+     console.log(progressText);
+     console.log(progressBar);
+     if (remainingTime && currentTaskName && progressText && progressBar && table) {
+       this.renderer.setProperty(remainingTime, 'textContent', "Текущие задачи: " + data.progress.remaining_all_time);
+       this.renderer.setProperty(currentTaskName, 'textContent', data.files[0]?.file_name);
+ 
+       const progressPercentage = ((data.progress.current_completed_file_time ?? 0) / (data.progress.current_file_time ?? 1)) * 100;
+       console.log(progressPercentage);
+       this.renderer.setProperty(progressText, 'textContent', `${data.progress.current_completed_file_time ?? 0} / ${data.progress.current_file_time ?? 1}`);
+       this.renderer.setStyle(progressBar, 'width', `${progressPercentage}%`);
+ 
+       for (let i = 0; i < data.files.length; i++) {
+         console.log(`for loop`);
+         const tr = this.renderer.createElement('tr');
+         const td1 = this.renderer.createElement('td');
+         const td2 = this.renderer.createElement('td');
+         this.renderer.appendChild(tr, td1);
+         this.renderer.appendChild(tr, td2);
+         this.renderer.appendChild(table, tr);
+ 
+         this.renderer.setProperty(td1, 'innerText', data.files[i].file_name);
+         this.renderer.setProperty(td2, 'innerText', data.files[i].estimated_time);
+       }
+     }
+  }
 }
