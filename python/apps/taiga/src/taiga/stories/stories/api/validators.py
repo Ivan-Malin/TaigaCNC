@@ -27,6 +27,7 @@ class StoryValidator(BaseModel):
 class UpdateStoryValidator(BaseModel):
     version: PositiveInt
     title: Title | None
+    titleCNC: str | None
     description: str | None
     status: B64UUID | None
     workflow: str | None

@@ -2,6 +2,7 @@ from aiohttp import web
 import threading
 from threading import Thread
 import time
+import json
 
 PORT = 7777
 
@@ -92,6 +93,7 @@ async def post_task_CNC(request):
 
 async def get_title_cnc_row_info(key):
     global Title_CNC
+    # t = replace_none_with_string(Title_CNC)
     info = {}
     info['files'] = []
     if not key in Title_CNC:
@@ -100,6 +102,10 @@ async def get_title_cnc_row_info(key):
         info['files'].append({'file_name':f['file_name'],
                          'estimated_time':f['estimated_time']})
     info['progress'] = Title_CNC[key]['progress']
+    # info = replace_none_with_string(info)
+    if info['progress']['current_file_name'] is None:
+        info['progress']['current_file_name'] = ''
+    print(info)
     return info
 
 async def get_title_cnc(request):
@@ -110,7 +116,9 @@ async def get_title_cnc(request):
     # ...
 
     result = await get_title_cnc_row_info((project_id,ref))
-    return web.json_response(result)
+    def custom_json_dumps(obj):
+        return json.dumps(obj).replace("'", '"')
+    return web.json_response(result, dumps=custom_json_dumps)
     
 
 class CNC:
@@ -136,8 +144,8 @@ class CNC:
     def _loop(self):
         while True:
             time.sleep(1)
-            print(CNCs)
-            print(self.state, self.completed_file_time, self.file_time)
+            # print(CNCs)
+            # print(self.state, self.completed_file_time, self.file_time)
             if self.state == "resumed":
                 self.completed_file_time += 1
                 if self.completed_file_time >= self.file_time:
@@ -182,6 +190,26 @@ class CNC:
     def __repr__(self):
         return f"CNC({self.ID})"
     
+
+def replace_none_with_string(input_dict):
+    """
+    Replace None values in a dictionary with the string 'None'.
+
+    Parameters:
+    - input_dict (dict): The input dictionary.
+
+    Returns:
+    - dict: A new dictionary with None values replaced by the string 'None'.
+    """
+    # return {key: '"None"' if value is None else value for key, value in input_dict.items()}
+    d = {}
+    for key in input_dict:
+        v = input_dict[key]
+        if v is None:
+            d[key] = '"None"'
+        else:
+            d[key] = v
+    return v
 
 class CNCcontrol:
     cnc: CNC

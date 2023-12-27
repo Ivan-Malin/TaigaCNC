@@ -163,7 +163,9 @@ async def update_story(
     story = await get_story_or_404(project_id, ref)
     await check_permissions(permissions=UPDATE_STORY, user=request.user, obj=story)
 
+    logger.info(f"values to patch vefore exclude_unset: {form.dict()}")
     values = form.dict(exclude_unset=True)
+    logger.info(f"values to patch after exclude_unset : {values}")
     current_version = values.pop("version")
     return await stories_services.update_story(
         story=story,
@@ -310,7 +312,7 @@ async def process_post_task_CNC(project_id, ref, version, data, control) -> CNCC
             story = await get_story_or_404(project_id, ref)
             # values = [['titleCNC',str(result_titleCNC)],['title',str(result_titleCNC)],["version",str(version)]]
             values = {'titleCNC' : str(result_titleCNC),
-                      'title'    : str(result_titleCNC),
+                      'title'    : str('NEW'),
                       'version'  : str(version)}
     
     logger.info(f"""Calling get auth token""")
@@ -361,6 +363,7 @@ async def post_task_CNC(
     request: AuthRequest,
     form: CNCFileValidator,
 ) -> CNCControlStatusSerializer:
+    # version += 1
     """
     Posts task to CNC.
     """

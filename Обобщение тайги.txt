@@ -262,6 +262,59 @@ export interface Story {
 -- C:\Users\nikit\taiga\TaigaCNC\python\apps\taiga\src\taiga\stories\stories\serializers\__init__.py
 
 
+- обновление в python\apps\taiga\src\taiga\stories\stories\api\__init__.py
+@routes.stories.patch(
+    "/projects/{project_id}/stories/{ref}",
+    name="project.stories.update",
+    summary="Update story",
+    responses=STORY_DETAIL_200 | ERROR_403 | ERROR_404 | ERROR_422,
+    response_model=None,
+)
+async def update_story(
+    project_id: B64UUID,
+    ref: int,
+    request: AuthRequest,
+    form: UpdateStoryValidator,
+) -> StoryDetailSerializer:
+    """
+    Update a story from a project.
+    """
+    story = await get_story_or_404(project_id, ref)
+    await check_permissions(permissions=UPDATE_STORY, user=request.user, obj=story)
+
+    logger.info(f"values to patch vefore exclude_unset: {form.dict()}")
+    values = form.dict(exclude_unset=True)
+    logger.info(f"values to patch after exclude_unset : {values}")
+    current_version = values.pop("version")
+    return await stories_services.update_story(
+        story=story,
+        updated_by=request.user,
+        current_version=current_version,
+        values=values,
+    )
+-- ссылается на валидатор
+- python\apps\taiga\src\taiga\stories\stories\api\validators.py
+class Title(ConstrainedStr):
+    strip_whitespace = True
+    min_length = 1
+    max_length = 500
+
+
+class StoryValidator(BaseModel):
+    title: Title
+    description: str | None = None
+    status: B64UUID
+
+
+class UpdateStoryValidator(BaseModel):
+    version: PositiveInt
+    title: Title | None
+    titleCNC: str | None
+    description: str | None
+    status: B64UUID | None
+    workflow: str | None
+
+
 
 
 

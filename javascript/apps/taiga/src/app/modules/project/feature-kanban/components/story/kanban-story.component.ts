@@ -118,36 +118,36 @@ export class KanbanStoryComponent implements OnChanges, OnInit,DoCheck {
   public reversedAssignees: Membership['user'][] = [];
   public restAssigneesLenght = '';
   public cardHasFocus = false;
-  public titleCNC = `{
-    "files": [
-      {
-        "file_name": "A",
-        "estimated_time": "1"
-      },
-      {
-        "file_name": "B",
-        "estimated_time": "1"
-      },
-      {
-        "file_name": "C",
-        "estimated_time": "1"
-      },
-      {
-        "file_name": "D",
-        "estimated_time": "1"
-      },
-      {
-        "file_name": "E",
-        "estimated_time": "1"
-      }
-    ],
-    "progress": {
-      "remaining_all_time": 1000,
-      "current_file_time": 100,
-      "current_completed_file_time": 90,
-      "state": "resumed"
-    }
-  }`;
+  // public titleCNC = `{
+  //   "files": [
+  //     {
+  //       "file_name": "A",
+  //       "estimated_time": "1"
+  //     },
+  //     {
+  //       "file_name": "B",
+  //       "estimated_time": "1"
+  //     },
+  //     {
+  //       "file_name": "C",
+  //       "estimated_time": "1"
+  //     },
+  //     {
+  //       "file_name": "D",
+  //       "estimated_time": "1"
+  //     },
+  //     {
+  //       "file_name": "E",
+  //       "estimated_time": "1"
+  //     }
+  //   ],
+  //   "progress": {
+  //     "remaining_all_time": 1000,
+  //     "current_file_time": 100,
+  //     "current_completed_file_time": 90,
+  //     "state": "resumed"
+  //   }
+  // }`;
   private previousTitleCNC: any;
   public readonly model$ = this.state.select();
 
@@ -233,14 +233,14 @@ export class KanbanStoryComponent implements OnChanges, OnInit,DoCheck {
     this.showTaskCNC();
   }
   ngDoCheck() {
-    if (this.titleCNC !== this.previousTitleCNC) {
+    if (this.story.titleCNC !== this.previousTitleCNC) {
       // Реагируйте на изменение переменной здесь
-      console.log('Значение переменной titleCNC изменилось:', this.titleCNC);
+      console.log('Значение переменной titleCNC изменилось:', this.story.titleCNC);
       
       // Выполните необходимые действия при изменении переменной
       
       // Обновите предыдущее значение переменной
-      this.previousTitleCNC = this.titleCNC;
+      this.previousTitleCNC = this.story.titleCNC;
     }
   }
   public setAssigneesInState() {
@@ -436,42 +436,52 @@ export class KanbanStoryComponent implements OnChanges, OnInit,DoCheck {
   //   return this.progressData.files.reduce((total: number, estimated_time : string) => total + parseInt(estimated_time), 0);
   // }
   public showTaskCNC() : void{
+    
      // Implement ngOnInit logic here
-     console.log(`ngOnInit taiga CNC`);
- 
-     const data = JSON.parse(this.titleCNC);
-     
-     let table = this.renderer.selectRootElement('.tasks_cnc');
-     let remainingTime = this.renderer.selectRootElement('.remainingTime');
-     let currentTaskName = this.renderer.selectRootElement('.currentTaskName');
-     let progressText = this.renderer.selectRootElement('.progressText');
-     let progressBar = this.renderer.selectRootElement('.progress');
-     console.log(table);
-     console.log(remainingTime);
-     console.log(currentTaskName);
-     console.log(progressText);
-     console.log(progressBar);
-     if (remainingTime && currentTaskName && progressText && progressBar && table) {
-       this.renderer.setProperty(remainingTime, 'textContent', "Текущие задачи: " + data.progress.remaining_all_time);
-       this.renderer.setProperty(currentTaskName, 'textContent', data.files[0]?.file_name);
- 
-       const progressPercentage = ((data.progress.current_completed_file_time ?? 0) / (data.progress.current_file_time ?? 1)) * 100;
-       console.log(progressPercentage);
-       this.renderer.setProperty(progressText, 'textContent', `${data.progress.current_completed_file_time ?? 0} / ${data.progress.current_file_time ?? 1}`);
-       this.renderer.setStyle(progressBar, 'width', `${progressPercentage}%`);
- 
-       for (let i = 0; i < data.files.length; i++) {
-         console.log(`for loop`);
-         const tr = this.renderer.createElement('tr');
-         const td1 = this.renderer.createElement('td');
-         const td2 = this.renderer.createElement('td');
-         this.renderer.appendChild(tr, td1);
-         this.renderer.appendChild(tr, td2);
-         this.renderer.appendChild(table, tr);
- 
-         this.renderer.setProperty(td1, 'innerText', data.files[i].file_name);
-         this.renderer.setProperty(td2, 'innerText', data.files[i].estimated_time);
-       }
-     }
+    console.log(`ngOnInit taiga CNC`);
+    
+    console.log('TitleCNC:')
+    console.log(this.story.titleCNC);
+    console.log(this.story.ref);
+    console.log('Start parsing');
+    if (this.story.titleCNC !== null) {
+      let s = this.story.titleCNC.replace(/'/g, '"')
+      const data = JSON.parse(s);
+      
+      let table = this.renderer.selectRootElement('.tasks_cnc');
+      let remainingTime = this.renderer.selectRootElement('.remainingTime');
+      let currentTaskName = this.renderer.selectRootElement('.currentTaskName');
+      let progressText = this.renderer.selectRootElement('.progressText');
+      let progressBar = this.renderer.selectRootElement('.progress');
+      console.log(table);
+      console.log(remainingTime);
+      console.log(currentTaskName);
+      console.log(progressText);
+      console.log(progressBar);
+      if (remainingTime && currentTaskName && progressText && progressBar && table) {
+        this.renderer.setProperty(remainingTime, 'textContent', "Текущие задачи: " + data.progress.remaining_all_time);
+        this.renderer.setProperty(currentTaskName, 'textContent', data.files[0]?.file_name);
+
+        const progressPercentage = ((data.progress.current_completed_file_time ?? 0) / (data.progress.current_file_time ?? 1)) * 100;
+        console.log(progressPercentage);
+        this.renderer.setProperty(progressText, 'textContent', `${data.progress.current_completed_file_time ?? 0} / ${data.progress.current_file_time ?? 1}`);
+        this.renderer.setStyle(progressBar, 'width', `${progressPercentage}%`);
+
+        for (let i = 0; i < data.files.length; i++) {
+          console.log(`for loop`);
+          const tr = this.renderer.createElement('tr');
+          const td1 = this.renderer.createElement('td');
+          const td2 = this.renderer.createElement('td');
+          this.renderer.appendChild(tr, td1);
+          this.renderer.appendChild(tr, td2);
+          this.renderer.appendChild(table, tr);
+
+          this.renderer.setProperty(td1, 'innerText', data.files[i].file_name);
+          this.renderer.setProperty(td2, 'innerText', data.files[i].estimated_time);
+        }
+      }
+    }
+    else {
+    }
   }
 }
