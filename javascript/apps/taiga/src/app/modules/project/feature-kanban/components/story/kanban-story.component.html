@@ -217,23 +217,41 @@ Copyright (c) 2023-present Kaleidos INC
     <br>
     <div
       [ngClass]="{
+        'cnc-control': vm.assignees.length
+      }">
+      <!--
+        [ngClass]="{
         'cnc-control-hidden': !vm.assignees.length,
         'cnc-control': vm.assignees.length
       }">
+      -->
       <!--
       <p
         class="cnc-progress">
         {{ story.titleCNC }}
       </p>
     -->
-
-      <!-- <div class="cnc-progress" style="display: block;">
-        <p>Total Progress</p>
-        <div class="progress">
-          <progress id="progress_bar" [value]="calculateProgressWidth()" max="100"></progress>
+        <p class="remainingTime" ></p> <!-- #remainingTime-->
+        <table  class="tasks_cnc"><!-- #table-->
+          <tbody>
+            <tr>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td class="currentTaskName" ></td>  <!-- #currentTaskName-->
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="progress-bar" style="position: relative;">
+          <span class="progressText" style="position: absolute; left: 40%;z-index: 1;" ></span>
+          <!-- #progressText-->
+          <div class="progress" style="width: 20%; position: relative;" >
+            <!-- #progressBar-->
+          </div>
         </div>
-      </div> -->
-      <div
+      <div 
         class="cnc-control">
         <button
           class="cnc-control-button"

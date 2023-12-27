@@ -248,3 +248,69 @@ Copyright (c) 2023-present Kaleidos INC
     z-index: var(--first-layer);
   }
 }
+table.tasks_cnc tbody { 
+  display: block; 
+  overflow-y: auto; /* Trigger vertical scroll */
+  overflow-x: hidden; /* Hide horizontal scroll */
+}
+table.tasks_cnc {
+  display: block;
+  flex-flow: column;
+  width: 80%;
+  max-width: 250px;
+  border-collapse: collapse;
+  max-height: 100px; /* Maximum height to display no more than 5 rows */
+  overflow: auto; /* Add scroll bars when necessary */
+}
+table.tasks_cnc td {
+  border: 1px solid black;
+  border-width: 2px;
+  padding: 8px;
+}
+table.tasks_cnc td:nth-child(odd){
+  width: 200px; /* Fixed width for odd cells */
+  max-width: 200px;
+  max-height: 40px;
+  overflow-x: auto;
+  overflow-y: auto;
+}
+table.tasks_cnc td:nth-child(even){
+  width: 50px; /* Fixed width for even cells */
+  max-width: 50px;
+  max-height: 40px;
+  overflow-y: auto;
+}
+table.tasks_cnc tr {
+  display: table;
+  table-layout: fixed;
+  margin-bottom: 2px; /* Spacing between rows */
+}
+table.tasks_cnc::-webkit-scrollbar-track
+{
+  -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+  border-radius: 5px;
+  background-color: #F5F5F5;
+}
+table.tasks_cnc::-webkit-scrollbar
+{
+  width: 6px;
+  background-color: #F5F5F5;
+}
+table.tasks_cnc::-webkit-scrollbar-thumb
+{
+  border-radius: 5px;
+  -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+  background-color: #736e6e;
+}
+.progress-bar {
+  width: 80%;
+  background-color: #f2f2f2;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress {
+  height: 20px;
+  background-color: #4caf50;
+  transition: width 0.3s ease;
+}

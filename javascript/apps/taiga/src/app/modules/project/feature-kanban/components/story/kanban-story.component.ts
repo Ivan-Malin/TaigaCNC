@@ -17,6 +17,10 @@ import {
   OnInit,
   SimpleChanges,
   forwardRef,
+  ViewChild,
+  Renderer2,
+  ChangeDetectorRef,
+  DoCheck
 } from '@angular/core';
 import { UntilDestroy } from '@ngneat/until-destroy';
 import { Store } from '@ngrx/store';
@@ -79,7 +83,7 @@ export interface StoryState {
     forwardRef(() => KanbanStatusComponent),
   ],
 })
-export class KanbanStoryComponent implements OnChanges, OnInit {
+export class KanbanStoryComponent implements OnChanges, OnInit,DoCheck {
   @Input()
   public story!: KanbanStory;
 
@@ -114,7 +118,37 @@ export class KanbanStoryComponent implements OnChanges, OnInit {
   public reversedAssignees: Membership['user'][] = [];
   public restAssigneesLenght = '';
   public cardHasFocus = false;
-
+  public titleCNC = `{
+    "files": [
+      {
+        "file_name": "A",
+        "estimated_time": "1"
+      },
+      {
+        "file_name": "B",
+        "estimated_time": "1"
+      },
+      {
+        "file_name": "C",
+        "estimated_time": "1"
+      },
+      {
+        "file_name": "D",
+        "estimated_time": "1"
+      },
+      {
+        "file_name": "E",
+        "estimated_time": "1"
+      }
+    ],
+    "progress": {
+      "remaining_all_time": 1000,
+      "current_file_time": 100,
+      "current_completed_file_time": 90,
+      "state": "resumed"
+    }
+  }`;
+  private previousTitleCNC: any;
   public readonly model$ = this.state.select();
 
   public get nativeElement() {
@@ -127,7 +161,9 @@ export class KanbanStoryComponent implements OnChanges, OnInit {
     private store: Store,
     private el: ElementRef,
     private permissionService: PermissionsService,
-    private http: HttpClient
+    private http: HttpClient,
+    private renderer: Renderer2,
+    private cdr: ChangeDetectorRef
   ) {
     this.state.set({
       assignees: [],
@@ -139,7 +175,7 @@ export class KanbanStoryComponent implements OnChanges, OnInit {
     this.state.connect(
       'isA11yDragInProgress',
       this.store.select(selectActiveA11yDragDropStory).pipe(
-        map((it) => it.ref === this.story.ref),
+        map((it: { ref: any; }) => it.ref === this.story.ref),
         distinctUntilChanged()
       )
     );
@@ -165,7 +201,15 @@ export class KanbanStoryComponent implements OnChanges, OnInit {
       this.setAssignedListA11y();
       this.calculateRestAssignes();
     });
+   
   }
+  ngAfterViewInit() {
+    this.showTaskCNC();
+    this.cdr.detectChanges();
+    console.log(`story.titleCNC`);
+    console.log(this.story.titleCNC);
+  }
+
 
   public ngOnChanges(changes: SimpleChanges): void {
     if (changes.story && this.story._shadow) {
@@ -186,16 +230,27 @@ export class KanbanStoryComponent implements OnChanges, OnInit {
       this.setAssignedListA11y();
       this.calculateRestAssignes();
     }
+    this.showTaskCNC();
   }
-
+  ngDoCheck() {
+    if (this.titleCNC !== this.previousTitleCNC) {
+      // Реагируйте на изменение переменной здесь
+      console.log('Значение переменной titleCNC изменилось:', this.titleCNC);
+      
+      // Выполните необходимые действия при изменении переменной
+      
+      // Обновите предыдущее значение переменной
+      this.previousTitleCNC = this.titleCNC;
+    }
+  }
   public setAssigneesInState() {
     const assignees: Membership['user'][] = [];
 
-    const currentUserMember = this.story.assignees.find((member) => {
+    const currentUserMember = this.story.assignees.find((member: { username: any; }) => {
       return member.username === this.state.get('currentUser').username;
     });
 
-    const members = this.story.assignees.filter((member) => {
+    const members = this.story.assignees.filter((member: { username: any; }) => {
       if (member.username === this.state.get('currentUser').username) {
         return false;
       }
@@ -206,7 +261,7 @@ export class KanbanStoryComponent implements OnChanges, OnInit {
     if (currentUserMember) {
       assignees.push(currentUserMember);
     }
-    members.forEach((member) => assignees.push(member));
+    members.forEach((member: Pick<User, "username" | "fullName" | "color">) => assignees.push(member));
     // Required for styling reasons (inverted flex)
     this.reversedAssignees = [...assignees].reverse();
 
@@ -216,7 +271,7 @@ export class KanbanStoryComponent implements OnChanges, OnInit {
   public setAssignedListA11y() {
     this.assignedListA11y = this.state
       .get('assignees')
-      .map((assigned) => assigned.fullName)
+      .map((assigned: { fullName: any; }) => assigned.fullName)
       .join(', ');
   }
 
@@ -380,5 +435,43 @@ export class KanbanStoryComponent implements OnChanges, OnInit {
   // getTotalCompletedTime(): number {
   //   return this.progressData.files.reduce((total: number, estimated_time : string) => total + parseInt(estimated_time), 0);
   // }
-
+  public showTaskCNC() : void{
+     // Implement ngOnInit logic here
+     console.log(`ngOnInit taiga CNC`);
+ 
+     const data = JSON.parse(this.titleCNC);
+     
+     let table = this.renderer.selectRootElement('.tasks_cnc');
+     let remainingTime = this.renderer.selectRootElement('.remainingTime');
+     let currentTaskName = this.renderer.selectRootElement('.currentTaskName');
+     let progressText = this.renderer.selectRootElement('.progressText');
+     let progressBar = this.renderer.selectRootElement('.progress');
+     console.log(table);
+     console.log(remainingTime);
+     console.log(currentTaskName);
+     console.log(progressText);
+     console.log(progressBar);
+     if (remainingTime && currentTaskName && progressText && progressBar && table) {
+       this.renderer.setProperty(remainingTime, 'textContent', "Текущие задачи: " + data.progress.remaining_all_time);
+       this.renderer.setProperty(currentTaskName, 'textContent', data.files[0]?.file_name);
+ 
+       const progressPercentage = ((data.progress.current_completed_file_time ?? 0) / (data.progress.current_file_time ?? 1)) * 100;
+       console.log(progressPercentage);
+       this.renderer.setProperty(progressText, 'textContent', `${data.progress.current_completed_file_time ?? 0} / ${data.progress.current_file_time ?? 1}`);
+       this.renderer.setStyle(progressBar, 'width', `${progressPercentage}%`);
+ 
+       for (let i = 0; i < data.files.length; i++) {
+         console.log(`for loop`);
+         const tr = this.renderer.createElement('tr');
+         const td1 = this.renderer.createElement('td');
+         const td2 = this.renderer.createElement('td');
+         this.renderer.appendChild(tr, td1);
+         this.renderer.appendChild(tr, td2);
+         this.renderer.appendChild(table, tr);
+ 
+         this.renderer.setProperty(td1, 'innerText', data.files[i].file_name);
+         this.renderer.setProperty(td2, 'innerText', data.files[i].estimated_time);
+       }
+     }
+  }
 }
