@@ -23,6 +23,7 @@ from taiga.stories.stories.models import Story
 from taiga.stories.stories.serializers import ReorderStoriesSerializer, StoryDetailSerializer, StorySummarySerializer, CNCControlStatusSerializer #
 from taiga.workflows.api import get_workflow_or_404
 from taiga.stories.stories import repositories as stories_repositories
+from taiga.base.utils.uuid import encode_uuid_to_b64str
 from taiga.conf import settings
 import aiohttp
 
@@ -249,9 +250,10 @@ async def get_story_or_404(project_id: UUID, ref: int) -> Story:
 
 # basic CNC server interface must be hosting on the same server
 async def process_control_cnc(project_id, ref, control) -> CNCControlStatusSerializer:
+    project_id_b64 = encode_uuid_to_b64str(project_id)
     # result = None
     async with aiohttp.ClientSession() as session:
-        async with session.get(f"{settings.CNC_URL}/projects/{project_id}/stories/{ref}/control/{control}") as response:
+        async with session.get(f"{settings.CNC_URL}/projects/{project_id_b64}/stories/{ref}/control/{control}") as response:
             result = await response.json()
             return CNCControlStatusSerializer(
                 ref = result['ref'],
@@ -275,29 +277,51 @@ async def control_story_CNC(project_id: B64UUID, ref: int, control: str, request
     story = await get_story_or_404(project_id=project_id, ref=ref)
     # await check_permissions(permissions=UPDATE_STORY, user=request.user, obj=story)
 
-    return await process_control_cnc(project_id = project_id, ref = ref, control = control) # Accepted | not accepted
+    return await process_control_cnc(project_id=project_id, ref = ref, control = control) # Accepted | not accepted
 
 
 
 
+async def get_CNC_auth_token():
+    #!!! TODO create CNC usse via command on via start
+    cnc_login_data = \
+    {
+        "username": "usera0",
+        "password": "123123"
+    }
+    logger.info(f"""Trying to get auth token""")
+    async with aiohttp.ClientSession(trust_env=True) as session:
+        async with session.post(f"http://taiga-front:80/api/v2/auth/token",json=cnc_login_data) as response:
+            logger.info(f"""CNC auth token: {await response.text()}""")
+            return await response.json()
 
 # basic CNC server interface must be hosting on the same server
 async def process_post_task_CNC(project_id, ref, version, data, control) -> CNCControlStatusSerializer:
+    project_id_b64 = encode_uuid_to_b64str(project_id)
     result = None
     async with aiohttp.ClientSession() as session:
-        async with session.post(f"{settings.CNC_URL}/projects/{project_id}/stories/{ref}/post_task",data=data) as response:
+        async with session.post(f"{settings.CNC_URL}/projects/{project_id_b64}/stories/{ref}/post_task",data=data) as response:
             result = await response.json()
     
     values = None
     async with aiohttp.ClientSession() as session:
-        async with session.get(f"{settings.CNC_URL}/projects/{project_id}/stories/{ref}/get_title_cnc") as response:
+        async with session.get(f"{settings.CNC_URL}/projects/{project_id_b64}/stories/{ref}/get_title_cnc") as response:
             result_titleCNC = await response.json()
             story = await get_story_or_404(project_id, ref)
-            values = [['titleCNC',str(result_titleCNC)],['title',str(result_titleCNC)],["version",str(version)]]
-            
-    async with aiohttp.ClientSession() as session:
-        async with session.patch(f"/api/v2//projects/{project_id}/stories/{ref}",data=values) as response:
-            logger.info(f"""Trying to update story {response.text()}""")
+            # values = [['titleCNC',str(result_titleCNC)],['title',str(result_titleCNC)],["version",str(version)]]
+            values = {'titleCNC' : str(result_titleCNC),
+                      'title'    : str(result_titleCNC),
+                      'version'  : str(version)}
+    
+    logger.info(f"""Calling get auth token""")
+    auth_token = (await get_CNC_auth_token())["token"]
+    logger.info(f"""Got auth token: {auth_token}""")
+    headers={"Authorization": f"Bearer {auth_token}"}
+    logger.info(f"""Authorizing: {headers}""")
+    logger.info(f"""values: {values}""")
+    async with aiohttp.ClientSession(headers=headers, trust_env=True) as session:
+        async with session.patch(f"http://taiga-front:80/api/v2/projects/{project_id_b64}/stories/{ref}",json=values) as response:
+            logger.info(f"""Trying to update story {(await response.text())}""")
 #             logger.info(
 #                 f"""Trying to update story
 # titleCNC: {logger},
@@ -343,7 +367,7 @@ async def post_task_CNC(
     #! TODO adds permissions check
     story = await get_story_or_404(project_id=project_id, ref=ref)
     values = form.dict(exclude_unset=True)
-    print(values)
+    logger.info(f"""values passed to post: {values} """)
     # current_version = values.pop("version")
 
     return await process_post_task_CNC(project_id = project_id, ref = ref, version=version, data = values, control = 'resume')
