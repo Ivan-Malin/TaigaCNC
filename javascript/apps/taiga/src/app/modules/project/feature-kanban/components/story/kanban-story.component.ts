@@ -448,11 +448,17 @@ export class KanbanStoryComponent implements OnChanges, OnInit,DoCheck {
       let s = this.story.titleCNC.replace(/'/g, '"')
       const data = JSON.parse(s);
       
-      let table = this.renderer.selectRootElement('.tasks_cnc');
-      let remainingTime = this.renderer.selectRootElement('.remainingTime');
-      let currentTaskName = this.renderer.selectRootElement('.currentTaskName');
-      let progressText = this.renderer.selectRootElement('.progressText');
-      let progressBar = this.renderer.selectRootElement('.progress');
+      // let table = this.renderer.selectRootElement('.tasks_cnc');
+      // let remainingTime = this.renderer.selectRootElement('.remainingTime');
+      // let currentTaskName = this.renderer.selectRootElement('.currentTaskName');
+      // let progressText = this.renderer.selectRootElement('.progressText');
+      // let progressBar = this.renderer.selectRootElement('.progress');
+      let table = this.el.nativeElement.querySelector('.tasks_cnc');
+      let remainingTime = this.el.nativeElement.querySelector('.remainingTime');
+      let currentTaskName = this.el.nativeElement.querySelector('.currentTaskName');
+      let progressText = this.el.nativeElement.querySelector('.progressText');
+      let progressBar = this.el.nativeElement.querySelector('.progress');
+
       console.log(table);
       console.log(remainingTime);
       console.log(currentTaskName);

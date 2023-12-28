@@ -278,6 +278,7 @@ async def control_story_CNC(project_id: B64UUID, ref: int, control: str, request
     #! TODO adds permissions check
     story = await get_story_or_404(project_id=project_id, ref=ref)
     # await check_permissions(permissions=UPDATE_STORY, user=request.user, obj=story)
+    await refresh_titleCNC(project_id, ref)
 
     return await process_control_cnc(project_id=project_id, ref = ref, control = control) # Accepted | not accepted
 
@@ -306,24 +307,6 @@ async def process_post_task_CNC(project_id, ref, version, data, control) -> CNCC
             result = await response.json()
     
     values = None
-    async with aiohttp.ClientSession() as session:
-        async with session.get(f"{settings.CNC_URL}/projects/{project_id_b64}/stories/{ref}/get_title_cnc") as response:
-            result_titleCNC = await response.json()
-            story = await get_story_or_404(project_id, ref)
-            # values = [['titleCNC',str(result_titleCNC)],['title',str(result_titleCNC)],["version",str(version)]]
-            values = {'titleCNC' : str(result_titleCNC),
-                      'title'    : str('NEW'),
-                      'version'  : str(version)}
-    
-    logger.info(f"""Calling get auth token""")
-    auth_token = (await get_CNC_auth_token())["token"]
-    logger.info(f"""Got auth token: {auth_token}""")
-    headers={"Authorization": f"Bearer {auth_token}"}
-    logger.info(f"""Authorizing: {headers}""")
-    logger.info(f"""values: {values}""")
-    async with aiohttp.ClientSession(headers=headers, trust_env=True) as session:
-        async with session.patch(f"http://taiga-front:80/api/v2/projects/{project_id_b64}/stories/{ref}",json=values) as response:
-            logger.info(f"""Trying to update story {(await response.text())}""")
 #             logger.info(
 #                 f"""Trying to update story
 # titleCNC: {logger},
@@ -342,12 +325,45 @@ async def process_post_task_CNC(project_id, ref, version, data, control) -> CNCC
 #     values={values},
 # )"""
 #             )
+    await refresh_titleCNC(project_id, ref)
             
     return CNCControlStatusSerializer(
         ref = result['ref'],
         control = result['control'], # pause | kill | resume
         state = result['state'], # running | pause | idle
         status = result['status']) # Accepted | not accepted
+
+
+
+
+
+
+
+async def refresh_titleCNC(project_id, ref):
+    project_id_b64 = encode_uuid_to_b64str(project_id)
+    story = None
+    async with aiohttp.ClientSession() as session:
+        async with session.get(f"{settings.CNC_URL}/projects/{project_id_b64}/stories/{ref}/get_title_cnc") as response:
+            result_titleCNC = await response.json()
+            story = await get_story_or_404(project_id, ref)
+            # values = [['titleCNC',str(result_titleCNC)],['title',str(result_titleCNC)],["version",str(version)]]
+            values = {'titleCNC' : str(result_titleCNC),
+                      'title'    : str('NEW'),
+                      'version'  : str(story.version)}
+    
+    logger.info(f"""Got story:\nref: {story.ref}, ver: {story.version}""")
+    logger.info(f"""Calling get auth token""")
+    auth_token = (await get_CNC_auth_token())["token"]
+    logger.info(f"""Got auth token: {auth_token}""")
+    headers={"Authorization": f"Bearer {auth_token}"}
+    logger.info(f"""Authorizing: {headers}""")
+    logger.info(f"""values: {values}""")
+    async with aiohttp.ClientSession(headers=headers, trust_env=True) as session:
+        async with session.patch(f"http://taiga-front:80/api/v2/projects/{project_id_b64}/stories/{ref}",json=values) as response:
+            logger.info(f"""Trying to update story {(await response.text())}""")
+            
+   
+            
 
 @routes.stories.post(
     "/projects/{project_id}/stories/{ref}/{version}/post_task",

@@ -273,6 +273,7 @@ async def _create_story(
     created_by: User,
     order: Decimal,
     title: str | None = None,
+    titleCNC: str | None = None,
     description: str | None = None,
     save: bool = True,
 ) -> Story:
