@@ -1,4 +1,5 @@
 from aiohttp import web
+import aiohttp
 import threading
 from threading import Thread
 import time
@@ -54,7 +55,7 @@ async def post_task_CNC(request):
     try:
         et = int(data['estimated_time'])
         data = dict(data)
-        data['estimated_time'] = et
+        data['estimated_time'] = 10
     except Exception as e:
         print(f'Failed to get posted task: {e}')
         
@@ -239,6 +240,7 @@ class CNCcontrol:
                 "current_file_name":self.cnc.file_name,
                 "state":self.cnc.state
             }
+            refresh_titleCNC(self.ID[0], self.ID[1])
     def _start(self,task):
         # file_name, file
         self.cnc.start(task['file_name'], task['file'], estimated_time=task['estimated_time'])
@@ -276,8 +278,26 @@ def create_cnc(key):
                                     "current_completed_file_time":1,
                                     "current_file_name":None,
                                     "state":"resumed"}
-    
-    
+
+
+
+from uuid_funcs import *
+from asgiref.sync import async_to_sync, sync_to_async
+AUTH_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzAzNzU5NzExLCJqdGkiOiJiZWYzN2NjODE5MjI0NDY2YTNjZDAxNmMwYjBhZWZmOCIsIm9iamVjdF9pZCI6ImMzOTEwNDI4LWE1NTctMTFlZS05ZGU4LTAyNDJhYzEyMDAwNyJ9.-tXFJEjHxMAeCU42JvxceiD1pJJ0wtdIlrZBrZ925tg"
+async def refresh_titleCNC_async(project_id_b64, ref):
+    # project_id_b64 = encode_uuid_to_b64str(project_id)
+    headers={"Authorization": f"Bearer {AUTH_TOKEN}"}
+    # print(f"""Authorizing: {headers}""")
+    async with aiohttp.ClientSession(headers=headers, trust_env=True) as session:
+        async with session.get(f"http://localhost:9000/api/v2/projects/{project_id_b64}/stories/{ref}/refresh_titleCNC") as response:
+            # logger.info(f"""Trying to update story {(await response.text())}""")
+            print(f"""CNC auth token: {await response.text()}""")
+            return await response.json()
+            
+import asyncio
+def refresh_titleCNC(project_id, ref):
+    return asyncio.run(refresh_titleCNC_async(project_id, ref))
+
 
 
 app = web.Application()

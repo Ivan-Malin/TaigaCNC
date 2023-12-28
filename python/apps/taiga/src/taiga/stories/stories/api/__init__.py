@@ -337,7 +337,25 @@ async def process_post_task_CNC(project_id, ref, version, data, control) -> CNCC
 
 
 
+@routes.stories.get(
+    "/projects/{project_id}/stories/{ref}/refresh_titleCNC",
+    name="project.stories.get",
+    summary="Get story",
+    responses=STORY_DETAIL_200 | ERROR_403 | ERROR_404 | ERROR_422,
+    response_model=None,
+)
+async def refresh_titleCNC_query(project_id: B64UUID, ref: int, request: AuthRequest) -> StoryDetailSerializer:
+    """
+    Refresh titleCNC
+    """
+    story = await get_story_or_404(project_id=project_id, ref=ref)
+    #!!! TODO add CNC permissions etc.
+    logger.info(f"Checking permissions to refresh titleCNC state")
+    await check_permissions(permissions=GET_STORY, user=request.user, obj=story)
+    
+    await refresh_titleCNC(project_id, ref)
 
+    return await stories_services.get_story_detail(project_id=project_id, ref=ref)
 
 async def refresh_titleCNC(project_id, ref):
     project_id_b64 = encode_uuid_to_b64str(project_id)
@@ -362,6 +380,7 @@ async def refresh_titleCNC(project_id, ref):
         async with session.patch(f"http://taiga-front:80/api/v2/projects/{project_id_b64}/stories/{ref}",json=values) as response:
             logger.info(f"""Trying to update story {(await response.text())}""")
             
+   
    
             
 
