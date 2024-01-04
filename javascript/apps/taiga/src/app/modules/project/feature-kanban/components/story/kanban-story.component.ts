@@ -435,6 +435,23 @@ export class KanbanStoryComponent implements OnChanges, OnInit,DoCheck {
   // getTotalCompletedTime(): number {
   //   return this.progressData.files.reduce((total: number, estimated_time : string) => total + parseInt(estimated_time), 0);
   // }
+  public formatTime(seconds: number): string { 
+    if (seconds < 0) {    throw new Error('Input be a non- number');
+    }
+    seconds = Math.trunc(seconds);
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secondsLeft = seconds % 60;
+    if ((minutes === 0) && (hours === 0)){
+      return `${secondsLeft.toString().padStart(2, '0')}s`;
+    }
+    if ((hours === 0) && (minutes !== 0)) {
+      return `${minutes.toString().padStart(2, '0')}m${secondsLeft.toString().padStart(2, '0')}s`;
+    } else {
+      return `${hours.toString().padStart(2, '0')}h${minutes.toString().padStart(2, '0')}m${secondsLeft.toString().padStart(2, '0')}s`;
+    }
+    return ``;
+   }
   public showTaskCNC() : void{
     
      // Implement ngOnInit logic here
@@ -444,46 +461,55 @@ export class KanbanStoryComponent implements OnChanges, OnInit,DoCheck {
     console.log(this.story.titleCNC);
     console.log(this.story.ref);
     console.log('Start parsing');
-    if (this.story.titleCNC !== null) {
-      let s = this.story.titleCNC.replace(/'/g, '"')
+    if (this.story.titleCNC !== null && this.story.titleCNC !== undefined) {
+      let s = this.story.titleCNC.replace(/'/g, '"');
       const data = JSON.parse(s);
       
-      // let table = this.renderer.selectRootElement('.tasks_cnc');
-      // let remainingTime = this.renderer.selectRootElement('.remainingTime');
-      // let currentTaskName = this.renderer.selectRootElement('.currentTaskName');
-      // let progressText = this.renderer.selectRootElement('.progressText');
-      // let progressBar = this.renderer.selectRootElement('.progress');
+      // Get HTML elements by selector
       let table = this.el.nativeElement.querySelector('.tasks_cnc');
       let remainingTime = this.el.nativeElement.querySelector('.remainingTime');
       let currentTaskName = this.el.nativeElement.querySelector('.currentTaskName');
       let progressText = this.el.nativeElement.querySelector('.progressText');
       let progressBar = this.el.nativeElement.querySelector('.progress');
-
+      let currentTaskParagraph = this.el.nativeElement.querySelector('.currentTaskParagraph');
       console.log(table);
       console.log(remainingTime);
       console.log(currentTaskName);
       console.log(progressText);
       console.log(progressBar);
-      if (remainingTime && currentTaskName && progressText && progressBar && table) {
-        this.renderer.setProperty(remainingTime, 'textContent', "Текущие задачи: " + data.progress.remaining_all_time);
-        this.renderer.setProperty(currentTaskName, 'textContent', data.files[0]?.file_name);
-
+      if (remainingTime || currentTaskName || progressText || progressBar || table) { // all "AND"
+        // Set current task percent hours
+        this.renderer.setProperty(remainingTime, 'textContent', "Текущие задачи (time): " + this.formatTime(data.progress.remaining_all_time));
+        this.renderer.setProperty(currentTaskParagraph, 'textContent', data.progress.current_file_name ? "Текущая задача " + data.progress.current_file_name : "Текущая задача отсутствует");
+        // Set current task name
+        //this.renderer.setProperty(currentTaskName, 'textContent', data.files[0]?.file_name);
+        // Refresh progress bar
         const progressPercentage = ((data.progress.current_completed_file_time ?? 0) / (data.progress.current_file_time ?? 1)) * 100;
         console.log(progressPercentage);
-        this.renderer.setProperty(progressText, 'textContent', `${data.progress.current_completed_file_time ?? 0} / ${data.progress.current_file_time ?? 1}`);
+        this.renderer.setProperty(progressText, 'textContent', `${this.formatTime(data.progress.current_completed_file_time) ?? 0} / ${this.formatTime(data.progress.current_file_time) ?? 1}`);
         this.renderer.setStyle(progressBar, 'width', `${progressPercentage}%`);
-
+        console.log(`before while loop`);
+        // remove all elemens tr in table before for loop
+        while (table.firstChild) {
+          console.log(`while loop`);
+          table.removeChild(table.firstChild);
+        }
+        console.log(`files length:`);
+        console.log(data.files.length);
+        // Added tasks from JSON
         for (let i = 0; i < data.files.length; i++) {
           console.log(`for loop`);
           const tr = this.renderer.createElement('tr');
           const td1 = this.renderer.createElement('td');
+          // added to td 1 class = "currentTaskName"
+          this.renderer.setProperty(td1, 'class', 'currentTaskName');
           const td2 = this.renderer.createElement('td');
           this.renderer.appendChild(tr, td1);
           this.renderer.appendChild(tr, td2);
           this.renderer.appendChild(table, tr);
 
           this.renderer.setProperty(td1, 'innerText', data.files[i].file_name);
-          this.renderer.setProperty(td2, 'innerText', data.files[i].estimated_time);
+          this.renderer.setProperty(td2, 'innerText', this.formatTime(data.files[i].estimated_time));
         }
       }
     }

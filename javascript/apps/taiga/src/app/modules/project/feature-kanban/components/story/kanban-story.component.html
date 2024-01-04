@@ -220,6 +220,14 @@ Copyright (c) 2023-present Kaleidos INC
         'cnc-control': vm.assignees.length
       }">
       <!--
+        !!ВЫВОД карточек задач только при наличии в названии CNC 
+      <div
+      [ngClass]="{
+         'cnc-control': vm.assignees.length,
+         'cnc-control-hidden': !story.title.includes('CNC')
+      }">
+      -->
+      <!--
         [ngClass]="{
         'cnc-control-hidden': !vm.assignees.length,
         'cnc-control': vm.assignees.length
@@ -231,26 +239,25 @@ Copyright (c) 2023-present Kaleidos INC
         {{ story.titleCNC }}
       </p>
     -->
+      <div class="taskBlock" style="position: relative;">
         <p class="remainingTime" ></p> <!-- #remainingTime-->
+        <p class="currentTaskParagraph"></p>
         <table  class="tasks_cnc"><!-- #table-->
           <tbody>
             <tr>
-              <td></td>
-              <td></td>
-            </tr>
-            <tr>
-              <td class="currentTaskName" ></td>  <!-- #currentTaskName-->
+              <td class="currentTaskName" ></td>  
               <td></td>
             </tr>
           </tbody>
         </table>
         <div class="progress-bar" style="position: relative;">
-          <span class="progressText" style="position: absolute; left: 40%;z-index: 1;" ></span>
+          <span class="progressText" style="position: absolute;z-index: 1;" ></span>
           <!-- #progressText-->
           <div class="progress" style="width: 20%; position: relative;" >
             <!-- #progressBar-->
           </div>
         </div>
+      </div>
       <div 
         class="cnc-control">
         <button
