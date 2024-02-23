@@ -24,12 +24,14 @@ WORKDIR /taiga
 RUN set -eux; \
     apt-get update; \
     # install system dependencies
-    apt-get install -y --no-install-recommends \
+    apt-get install -y --no-install-recommends --fix-missing \
         build-essential \
         # libpq5 needed in runtime for psycopg2
         libpq5 \
         libpq-dev \
         wget\
+        graphviz\
+        graphviz-dev\
     ; \
     # =====================================
     # install Taiga requirements
@@ -37,7 +39,7 @@ RUN set -eux; \
     python -m pip install -r requirements.txt; \
     # =====================================
     # install CNC requirements
-    apt-get install -y graphviz graphviz-dev; \
+    # apt-get install -y graphviz graphviz-dev; \
     python -m pip install aiohttp; \
     python -m pip install pygraphviz; \
     python -m pip install django-extensions; \

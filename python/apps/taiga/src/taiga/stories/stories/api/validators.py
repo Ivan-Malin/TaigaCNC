@@ -62,10 +62,10 @@ class ReorderStoriesValidator(BaseModel):
         return self.dict()["reorder"]
 
 
-class ReorderStoriesValidator(BaseModel):
-    status: B64UUID
-    stories: conlist(int, min_items=1)  # type: ignore[valid-type]
-    reorder: ReorderValidator | None
+# class ReorderStoriesValidator(BaseModel):
+#     status: B64UUID
+#     stories: conlist(int, min_items=1)  # type: ignore[valid-type]
+#     reorder: ReorderValidator | None
 
 class CNCFileValidator(BaseModel):
     file_name: str

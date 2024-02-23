@@ -83,7 +83,7 @@ export interface StoryState {
     forwardRef(() => KanbanStatusComponent),
   ],
 })
-export class KanbanStoryComponent implements OnChanges, OnInit,DoCheck {
+export class KanbanStoryComponent implements OnChanges, OnInit, DoCheck {
   @Input()
   public story!: KanbanStory;
 
@@ -348,11 +348,13 @@ export class KanbanStoryComponent implements OnChanges, OnInit,DoCheck {
     const statusScrollBottom =
       kanbanStatus.kanbanVirtualScroll?.scrollStrategy.viewport?.elementRef.nativeElement.getBoundingClientRect()
         .bottom;
+    // console.log('statusScrollBottom:',statusScrollBottom);
     if (statusScrollBottom) {
       const newTop =
         this.nativeElement.getBoundingClientRect().bottom -
         statusScrollBottom +
         1;
+      // console.log('this.nativeElement.getBoundingClientRect().bottom:',this.nativeElement.getBoundingClientRect().bottom);
       if (newTop > 0) {
         kanbanStatus.kanbanVirtualScroll?.scrollStrategy.scrollTo({
           top: newTop,
@@ -452,6 +454,14 @@ export class KanbanStoryComponent implements OnChanges, OnInit,DoCheck {
     }
     return ``;
    }
+  
+  @Input()
+  public show_tasks = false;
+  // public show_cnc   = false;
+  public get show_cnc() {
+    return (this.story.title).startsWith('CNC');
+  }
+
   public showTaskCNC() : void{
     
      // Implement ngOnInit logic here
@@ -477,9 +487,12 @@ export class KanbanStoryComponent implements OnChanges, OnInit,DoCheck {
       console.log(currentTaskName);
       console.log(progressText);
       console.log(progressBar);
-      if (remainingTime || currentTaskName || progressText || progressBar || table) { // all "AND"
+      this.show_tasks = data.progress.current_file_name ? true : false;
+      // if (remainingTime || currentTaskName || progressText || progressBar || table) { // all "AND"
+      if (this.show_tasks) {
         // Set current task percent hours
-        this.renderer.setProperty(remainingTime, 'textContent', "Текущие задачи (time): " + this.formatTime(data.progress.remaining_all_time));
+        // if filename is none, then don'
+        this.renderer.setProperty(remainingTime, 'textContent', "Оставшееся время задач: " + this.formatTime(data.progress.remaining_all_time));
         this.renderer.setProperty(currentTaskParagraph, 'textContent', data.progress.current_file_name ? "Текущая задача " + data.progress.current_file_name : "Текущая задача отсутствует");
         // Set current task name
         //this.renderer.setProperty(currentTaskName, 'textContent', data.files[0]?.file_name);
@@ -512,8 +525,6 @@ export class KanbanStoryComponent implements OnChanges, OnInit,DoCheck {
           this.renderer.setProperty(td2, 'innerText', this.formatTime(data.files[i].estimated_time));
         }
       }
-    }
-    else {
     }
   }
 }

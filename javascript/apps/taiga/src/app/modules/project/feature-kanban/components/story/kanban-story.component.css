@@ -24,7 +24,8 @@ Copyright (c) 2023-present Kaleidos INC
     box-shadow: none;
 
     & .story-title,
-    & .story-body {
+    & .story-body,
+    & .cnc-control {
       visibility: hidden;
     }
   }
@@ -154,10 +155,18 @@ Copyright (c) 2023-present Kaleidos INC
   border-radius: 4px;
   color: var(--color-gray80);
   display: inline-block;
+  /* display: block; */
   padding-block: var(--spacing-4);
   padding-inline: var(--spacing-8);
   position: relative;
 }
+
+.cnc-control-button  {
+  &.dragging {
+    visibility: hidden;
+  }
+}
+
 
 .cnc-control-hidden {
   visibility:hidden;

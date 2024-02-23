@@ -2,6 +2,7 @@ from aiohttp import web
 import aiohttp
 import threading
 from threading import Thread
+from AUTH_TOKEN_GETTER import AUTH_TOKEN
 import time
 import json
 
@@ -283,7 +284,14 @@ def create_cnc(key):
 
 from uuid_funcs import *
 from asgiref.sync import async_to_sync, sync_to_async
-AUTH_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzAzNzU5NzExLCJqdGkiOiJiZWYzN2NjODE5MjI0NDY2YTNjZDAxNmMwYjBhZWZmOCIsIm9iamVjdF9pZCI6ImMzOTEwNDI4LWE1NTctMTFlZS05ZGU4LTAyNDJhYzEyMDAwNyJ9.-tXFJEjHxMAeCU42JvxceiD1pJJ0wtdIlrZBrZ925tg"
+
+
+# import variables
+
+# AUTH_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzAzNzU5NzExLCJqdGkiOiJiZWYzN2NjODE5MjI0NDY2YTNjZDAxNmMwYjBhZWZmOCIsIm9iamVjdF9pZCI6ImMzOTEwNDI4LWE1NTctMTFlZS05ZGU4LTAyNDJhYzEyMDAwNyJ9.-tXFJEjHxMAeCU42JvxceiD1pJJ0wtdIlrZBrZ925tg"
+
+import os
+
 async def refresh_titleCNC_async(project_id_b64, ref):
     # project_id_b64 = encode_uuid_to_b64str(project_id)
     headers={"Authorization": f"Bearer {AUTH_TOKEN}"}

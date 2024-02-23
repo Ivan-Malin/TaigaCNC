@@ -366,7 +366,7 @@ async def refresh_titleCNC(project_id, ref):
             story = await get_story_or_404(project_id, ref)
             # values = [['titleCNC',str(result_titleCNC)],['title',str(result_titleCNC)],["version",str(version)]]
             values = {'titleCNC' : str(result_titleCNC),
-                      'title'    : str('NEW'),
+                    #   'title'    : str('NEW'),
                       'version'  : str(story.version)}
     
     logger.info(f"""Got story:\nref: {story.ref}, ver: {story.version}""")

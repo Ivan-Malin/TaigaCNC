@@ -97,6 +97,91 @@ Copyright (c) 2023-present Kaleidos INC
             </button>
           </div>
         </ng-container>
+
+
+        <br>
+        <div
+          *ngIf="story.title.startsWith('CNC')"
+          [ngClass]="{
+            'cnc-control': story.title.startsWith('CNC')
+          }">
+          <!--
+            !!ВЫВОД карточек задач только при наличии в названии CNC 
+          <div
+          [ngClass]="{
+            'cnc-control': vm.assignees.length,
+            'cnc-control-hidden': !story.title.includes('CNC')
+          }">
+          -->
+          <!--
+            [ngClass]="{
+            'cnc-control-hidden': !vm.assignees.length,
+            'cnc-control': vm.assignees.length
+          }">
+          -->
+          <!--
+          <p
+            class="cnc-progress">
+            {{ story.titleCNC }}
+          </p>
+        -->
+        <!-- class="taskBlock" -->
+          <div *ngIf="show_tasks"
+               style="position: relative;">
+            <p class="remainingTime"></p> <!-- #remainingTime-->
+            <p class="currentTaskParagraph"></p>
+            <table class="tasks_cnc"><!-- #table-->
+              <tbody>
+                <tr>
+                  <td class="currentTaskName" ></td>  
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="progress-bar" style="position: relative;">
+              <span class="progressText" style="position: absolute;z-index: 1;" ></span>
+              <!-- #progressText-->
+              <div class="progress" style="width: 20%; position: relative;" >
+              <!-- #progressBar-->
+              </div>
+            </div>
+          </div>
+          <div
+            class="cnc-control">
+            <button
+              class="cnc-control-button"
+              (click)="handlePause($event)"
+            >
+              Pause
+            </button>
+            <button
+              class="cnc-control-button"
+              (click)="handleKill($event)"
+            >
+              Kill
+            </button>
+            <button
+              class="cnc-control-button"
+              (click)="handleResume($event)"
+            >
+              Resume
+            </button>
+          </div>
+          <div
+            class="cnc-post">
+            <input
+              class="cnc-control-button"
+              type="file"
+              (change)="onFileSelected($event)"/>
+            <button
+              class="cnc-control-button"
+              (click)="post_task($event)"
+            >
+              Post task
+            </button>
+          </div>
+        </div>
+        <br>
       </div>
     </div>
 
@@ -214,85 +299,5 @@ Copyright (c) 2023-present Kaleidos INC
         }}
       </p>
     </ng-template>
-    <br>
-    <div
-      [ngClass]="{
-        'cnc-control': vm.assignees.length
-      }">
-      <!--
-        !!ВЫВОД карточек задач только при наличии в названии CNC 
-      <div
-      [ngClass]="{
-         'cnc-control': vm.assignees.length,
-         'cnc-control-hidden': !story.title.includes('CNC')
-      }">
-      -->
-      <!--
-        [ngClass]="{
-        'cnc-control-hidden': !vm.assignees.length,
-        'cnc-control': vm.assignees.length
-      }">
-      -->
-      <!--
-      <p
-        class="cnc-progress">
-        {{ story.titleCNC }}
-      </p>
-    -->
-      <div class="taskBlock" style="position: relative;">
-        <p class="remainingTime" ></p> <!-- #remainingTime-->
-        <p class="currentTaskParagraph"></p>
-        <table  class="tasks_cnc"><!-- #table-->
-          <tbody>
-            <tr>
-              <td class="currentTaskName" ></td>  
-              <td></td>
-            </tr>
-          </tbody>
-        </table>
-        <div class="progress-bar" style="position: relative;">
-          <span class="progressText" style="position: absolute;z-index: 1;" ></span>
-          <!-- #progressText-->
-          <div class="progress" style="width: 20%; position: relative;" >
-            <!-- #progressBar-->
-          </div>
-        </div>
-      </div>
-      <div 
-        class="cnc-control">
-        <button
-          class="cnc-control-button"
-          (click)="handlePause($event)"
-        >
-          Pause
-        </button>
-        <button
-          class="cnc-control-button"
-          (click)="handleKill($event)"
-        >
-          Kill
-        </button>
-        <button
-          class="cnc-control-button"
-          (click)="handleResume($event)"
-        >
-          Resume
-        </button>
-      </div>
-      <div
-        class="cnc-post">
-        <input
-          class="cnc-control-button"
-          type="file"
-          (change)="onFileSelected($event)"/>
-        <button
-          class="cnc-control-button"
-          (click)="post_task($event)"
-        >
-          Post task
-        </button>
-      </div>
-    </div>
-    <br>
   </ng-container>
 </ng-container>

@@ -103,6 +103,8 @@ export class KanbanWorkflowDragAndDropService {
 
         if (event?.candidate) {
           const candidateRef = event.candidate.result.ref;
+          // console.log('candidateRef',candidateRef);
+          // console.log('event.candidate.position',event.candidate.position)
           if (candidateRef) {
             candidate = {
               ref: candidateRef,
@@ -176,6 +178,9 @@ export class KanbanWorkflowDragAndDropService {
             };
           }
         }
+
+        console.log('over');
+        console.log('event?.dropZone',event?.dropZone);
 
         this.store.dispatch(
           KanbanActions.storyDropCandidate({
