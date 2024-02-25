@@ -25,7 +25,7 @@ Copyright (c) 2023-present Kaleidos INC
 
     & .story-title,
     & .story-body,
-    & .cnc-control {
+    & .cnc-box {
       visibility: hidden;
     }
   }
@@ -147,6 +147,9 @@ Copyright (c) 2023-present Kaleidos INC
   padding-inline: var(--spacing-8);
   position: relative;
 }
+
+.cnc-control-file-chooser,
+.cnc-box,
 .cnc-control,
 .cnc-post,
 .cnc-control-button  {
@@ -159,6 +162,11 @@ Copyright (c) 2023-present Kaleidos INC
   padding-block: var(--spacing-4);
   padding-inline: var(--spacing-8);
   position: relative;
+}
+
+.cnc-control-file-chooser,
+.cnc-box  {
+  width: 100%;
 }
 
 .cnc-control-button  {

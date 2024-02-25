@@ -103,7 +103,7 @@ Copyright (c) 2023-present Kaleidos INC
         <div
           *ngIf="story.title.startsWith('CNC')"
           [ngClass]="{
-            'cnc-control': story.title.startsWith('CNC')
+            'cnc-box': story.title.startsWith('CNC')
           }">
           <!--
             !!ВЫВОД карточек задач только при наличии в названии CNC 
@@ -170,7 +170,7 @@ Copyright (c) 2023-present Kaleidos INC
           <div
             class="cnc-post">
             <input
-              class="cnc-control-button"
+              class="cnc-control-file-chooser"
               type="file"
               (change)="onFileSelected($event)"/>
             <button
