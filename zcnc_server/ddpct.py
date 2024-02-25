@@ -10,7 +10,11 @@
 # Usage:
 # use -h option ;)
 #
+import base64
+from threading import Event
+import threading
 import serial, os, sys, re, argparse, string, signal
+import tempfile
 
 class gparser(object):
     def __init__(self):
@@ -31,7 +35,13 @@ class gparser(object):
             fh = open(fname)
         for line in fh:
             fcontent.append(line.rstrip())
-        fh.close
+        fh.close()
+        self.fcontent = fcontent
+    
+    def readstr(self,s):
+        fcontent = []
+        for line in s.split('\n'):
+            fcontent.append(line.rstrip())
         self.fcontent = fcontent
 
     def checksum(self,line):
@@ -45,11 +55,11 @@ class gparser(object):
         return line+"*"+self.checksum(line)
     
     def prepare_checksum(self):
-        self.parsed = []
         return "M110 N0"
     
     def parse_file(self):
         if self.do_checksum:
+            self.parsed = []
             self.prepare_checksum()
         for line in self.fcontent:
             self.parse(line)
@@ -89,8 +99,9 @@ class dddprinter(object):
         self.dir_mark = True # Show direction marks
         self.gcode = [""]
         
-        self.paused = False
-        self.task_killed = False
+        self.paused         = Event()
+        self.task_killed    = Event()
+        self.ended_printing = Event()
         self.last_line = ''
 
     def loadgcodestring(self,gcodestr):
@@ -120,6 +131,41 @@ class dddprinter(object):
         if self.silent: return ""
         if self.dir_mark: return "<-: "
         else: return ""
+    
+    
+    def print(self):
+        # self.parser.readfile(f_name)
+        # print(self.parser.fcontent)
+        self.parser.parse_file()
+        # print(len(self.parser.parsed))
+        # print(len(self.parser.get_parsed()))
+        # self.parser.dump_parsed()
+        # printer.connect(args['device'], args['baud'])
+        # printer.connect(self.device, self.baud)
+        
+        self.parser.do_checksum = True
+        if self.parser.do_checksum:
+            # print(len(self.parser.parsed))
+            self.write(self.parser.prepare_checksum())
+            # print(len(self.parser.parsed))
+            self.waitforok()
+            # print(len(self.parser.parsed))
+            p = self.parser.get_parsed()
+            self.loadgcode(p)
+            # print(p)
+            # print(self.parser.get_parsed())
+            print(self.currentln, len(self.gcode))
+            t = threading.Thread(target=self._print)
+            t.start()
+            
+    def print_rest_file(self, file: str):
+        self.parser.readstr(base64.b64decode(file.split(',')[1]).decode())
+        self.print()
+    
+    def print_file(self, fname):
+        self.parser.readfile(fname)
+        self.print()
+    
 
     def write(self,line):
         self.ldm(line)
@@ -149,7 +195,7 @@ class dddprinter(object):
         result = self.read()
         while (len(result) == 0 or
                 self.re_ignore.match(result) or
-                parser.re_empty.match(result)):
+                self.parser.re_empty.match(result)):
             result = self.read() # Ignore empty lines, unuseful infos, 0-lenght
         if self.re_emergency.match(result):
             # Emergency
@@ -176,28 +222,40 @@ class dddprinter(object):
 
 
     def _print(self):
-        while self.currentln < len(self.gcode):
-            while self.paused:
+        print(self.currentln, len(self.gcode))
+        while self.currentln < len(self.gcode): # copy
+            while self.paused.is_set():   # event
                 pass
-            if self.task_killed:
-                self.task_killed = False
+            if self.task_killed.is_set(): # event
+                self.task_killed.clear()
                 print('Task killed')
                 break
-            self.write(self.gcode[self.currentln])
+            self.write(self.gcode[self.currentln]) # copy
             self.waitforok()
             self.currentln += 1
         self.end_file()
-        print("Print successfull :D")
+        print("Printed successfull :D")
         print("programm succeeded.")
         # sys.exit(0)
+        self.ended_printing.set()
     
     def pause(self):
-        self.paused = True
+        self.paused.set()
     
     def kill(self):
-        self.task_killed = True
+        self.task_killed.set()
+    
+    def resume(self):
+        self.paused.clear()
         
     def end_file(self):
+        p = self.ser.port
+        b = self.ser.baudrate
+        self.ser.close()
+        self.connect(p,b)
+        self.write(self.parser.prepare_checksum())
+        self.ser.close()
+        self.connect(p,b)
         pass
 
     def panic(self,message):
@@ -290,19 +348,19 @@ if __name__ == "__main__":
 
     def test():
         file   = 'model.gcode'
-        parser.readfile(file)
-        parser.parse_file()
-        parser.dump_parsed()
-        # printer.connect(args['device'], args['baud'])
         device = 'COM5'
         baud   = 250000
         printer.connect(device, baud)
-        
-        if printer.parser.do_checksum:
-            printer.write(printer.parser.prepare_checksum())
-            printer.waitforok()
-            printer.loadgcode(parser.get_parsed())
-            printer._print()
+        printer.print_file(file)
+        while True:
+            a = int(input())
+            if   a==0:
+                printer.pause()
+            elif a==1:
+                printer.resume()
+            elif a==2:
+                printer.kill()
+            print(printer.pause)
     
     test()
     

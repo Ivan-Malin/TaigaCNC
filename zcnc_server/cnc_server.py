@@ -5,6 +5,7 @@ from threading import Thread
 from AUTH_TOKEN_GETTER import AUTH_TOKEN
 import time
 import json
+from ddpct import *
 
 PORT = 7777
 
@@ -23,6 +24,7 @@ async def control_story_CNC(request):
     project_id = request.match_info['project_id']
     ref = int(request.match_info['ref'])
     control = request.match_info['control']
+    print(control)
     
     key = (project_id, ref)
     if not key in CNCs:
@@ -31,7 +33,7 @@ async def control_story_CNC(request):
         CNCs[key].resume()
     elif control=='pause':
         CNCs[key].pause()
-    elif control=='stop':
+    elif control in ('stop','kill'):
         CNCs[key].stop()
 
     # Here you can perform any required logic, such as checking permissions
@@ -46,6 +48,7 @@ async def control_story_CNC(request):
 async def post_task_CNC(request):
     project_id = request.match_info['project_id']
     ref = int(request.match_info['ref'])
+    print('project, ref', project_id.__repr__(), ref.__repr__())
     key = (project_id, ref)
     # print(await request.post())
     # print(await request.post().json())
@@ -107,7 +110,7 @@ async def get_title_cnc_row_info(key):
     # info = replace_none_with_string(info)
     if info['progress']['current_file_name'] is None:
         info['progress']['current_file_name'] = ''
-    print(info)
+    # print(info)
     return info
 
 async def get_title_cnc(request):
@@ -123,6 +126,11 @@ async def get_title_cnc(request):
     return web.json_response(result, dumps=custom_json_dumps)
     
 
+ANYCUBIC_ID = ('1CgV6KVbEe6mhQJCrBIABA', 3)
+ANYCUBIC = dddprinter()
+ANYCUBIC_device = 'COM5'
+ANYCUBIC_baud   = 250000
+ANYCUBIC.connect(ANYCUBIC_device, ANYCUBIC_baud)
 class CNC:
     ID: str
     file_name: str
@@ -148,10 +156,12 @@ class CNC:
             time.sleep(1)
             # print(CNCs)
             # print(self.state, self.completed_file_time, self.file_time)
+            # print(self.file)
             if self.state == "resumed":
                 self.completed_file_time += 1
-                if self.completed_file_time >= self.file_time:
-                    self.stop()
+                if not self.ID == ANYCUBIC_ID:
+                    if self.completed_file_time >= self.file_time:
+                        self.stop()
         
     def start(self, file_name, file, estimated_time=None):
         self.completed_file_time = 0
@@ -161,11 +171,16 @@ class CNC:
             self.file_time = estimated_time
         print(f'CNC {self.ID}: started file {self.file_name}')
         self.state = 'resumed'
+        if self.ID == ANYCUBIC_ID:
+            ANYCUBIC.print_rest_file(self.file)
+            
         
     def pause(self):
         # p = ((self.completed_file_time+1e-10) / (self.file_time+1e-10))
         print(f'CNC {self.ID}: paused on file {self.file_name} with progress {self.completed_file_time}:{self.file_time}')
         self.state = 'paused'
+        if self.ID == ANYCUBIC_ID:
+            ANYCUBIC.pause()
         
     def resume(self):
         if self.file == None:
@@ -175,6 +190,8 @@ class CNC:
             # p = ((self.completed_file_time+1e-10) / (self.file_time+1e-10))
             print(f'CNC {self.ID}: resumed on file {self.file_name} with progress {self.completed_file_time}:{self.file_time}')
             self.state = 'resumed'
+            if self.ID == ANYCUBIC_ID:
+                ANYCUBIC.resume()
             
     def stop(self):
         print(f'CNC {self.ID}: stoped file {self.file_name} and started cleaning workspace')
@@ -183,6 +200,9 @@ class CNC:
         self.completed_file_time = 1
         self.file_name = None
         self.file = None
+        if self.ID == ANYCUBIC_ID:
+            print('I KILLED ANYCUBIC')
+            ANYCUBIC.kill()
     
     def get_state(self):
         return self.state
@@ -299,7 +319,7 @@ async def refresh_titleCNC_async(project_id_b64, ref):
     async with aiohttp.ClientSession(headers=headers, trust_env=True) as session:
         async with session.get(f"http://localhost:9000/api/v2/projects/{project_id_b64}/stories/{ref}/refresh_titleCNC") as response:
             # logger.info(f"""Trying to update story {(await response.text())}""")
-            print(f"""CNC auth token: {await response.text()}""")
+            # print(f"""CNC auth token: {await response.text()}""")
             return await response.json()
             
 import asyncio
