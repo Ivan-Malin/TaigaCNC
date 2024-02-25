@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Drag and Drop</title>
+</head>
+<body>
+    <h1>Drag and Drop Demo</h1>
+
+    <div class="container">
+        <div id="id-column" class="column">
+            <h2>ID Column</h2>
+            {% for item in id_items %}
+                <div class="ID-box" id="{{ item }}" ondrop="drop(event)" ondragover="allowDrop(event)" draggable="false">{{ item }}</div>
+            {% endfor %}
+        </div>
+        <div id="cnc-column" class="column" ondrop="dropBack(event)" ondragover="allowDrop(event)">
+            <h2>CNC Column</h2>
+            {% for item in cnc_items %}
+                <div class="box" id="{{ item }}" draggable="true" ondragstart="event.dataTransfer.setData('text/plain', '{{ item }}')">{{ item }}</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
