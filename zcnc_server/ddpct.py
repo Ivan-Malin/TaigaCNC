@@ -197,6 +197,9 @@ class dddprinter(object):
                 self.re_ignore.match(result) or
                 self.parser.re_empty.match(result)):
             result = self.read() # Ignore empty lines, unuseful infos, 0-lenght
+            if self.task_killed.is_set(): # event
+                print('Task killed')
+                return
         if self.re_emergency.match(result):
             # Emergency
             self.panic("received EMERGENCY CONDITION!")
@@ -224,12 +227,13 @@ class dddprinter(object):
     def _print(self):
         print(self.currentln, len(self.gcode))
         while self.currentln < len(self.gcode): # copy
-            while self.paused.is_set():   # event
-                pass
+            print('self.task_killed.is_set()',self.task_killed.is_set())
             if self.task_killed.is_set(): # event
                 self.task_killed.clear()
                 print('Task killed')
                 break
+            while self.paused.is_set():   # event
+                pass
             self.write(self.gcode[self.currentln]) # copy
             self.waitforok()
             self.currentln += 1
