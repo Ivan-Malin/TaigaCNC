@@ -265,6 +265,12 @@ Copyright (c) 2023-present Kaleidos INC
     z-index: var(--first-layer);
   }
 }
+
+
+.info-text {
+  margin-block: 1rem;
+}
+
 /*
 Styling task-table
 */
@@ -280,7 +286,9 @@ table.tasks_cnc {
   /*max-width: 100px;*/
   border-collapse: collapse;
   max-height: 100px; /* Maximum height to display no more than 5 rows */
-  overflow: auto; /* Add scroll bars when necessary */
+  overflow-y: auto; /* Add scroll bars when necessary */
+  overflow-x: hidden;
+  table-layout: fixed;
 }
 table.tasks_cnc td {
   border: 1px solid black;
@@ -350,10 +358,10 @@ table.tasks_cnc td::-webkit-scrollbar-thumb
   background-color: #4caf50;
   transition: width 0.3s ease;
 }
-#progressText{
+.progressText{
   display: inline-block;
   position: absolute;
   z-index: 1;
-  left: 100%;
+  /* left: 100%; */
   transform: translateX(-50%);
 }

@@ -74,6 +74,8 @@ async def post_task_CNC(request):
 
     if not (('file_name' in data.keys()) and ('estimated_time' in data.keys()) and ('file' in data.keys())):
         return web.HTTPPartialContent(text=f"Keyset {data.keys()} is not full")
+    if data['file_name']=='':
+        return web.HTTPPartialContent(text=f"{data['file_name']} is not a valid filename")
     try:
         et = int(data['estimated_time'])
         try:
@@ -285,7 +287,8 @@ class CNCcontrol:
                 "current_file_name":self.cnc.file_name,
                 "state":self.cnc.state
             }
-            refresh_titleCNC(self.ID[0], self.ID[1])
+            if not self.state in ('paused','idle'):
+                refresh_titleCNC(self.ID[0], self.ID[1])
     def _start(self,task):
         # file_name, file
         self.cnc.start(task['file_name'], task['file'], estimated_time=task['estimated_time'])

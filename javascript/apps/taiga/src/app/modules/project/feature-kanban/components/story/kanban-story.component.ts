@@ -521,7 +521,7 @@ export class KanbanStoryComponent implements OnChanges, OnInit, DoCheck {
           this.renderer.appendChild(tr, td2);
           this.renderer.appendChild(table, tr);
 
-          this.renderer.setProperty(td1, 'innerText', data.files[i].file_name);
+          this.renderer.setProperty(td1, 'innerHTML', `<div style="width:100%;height:100%;overflow:hidden">${data.files[i].file_name}</div>`);
           this.renderer.setProperty(td2, 'innerText', this.formatTime(data.files[i].estimated_time));
         }
       }
