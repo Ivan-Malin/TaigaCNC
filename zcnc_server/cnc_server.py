@@ -1,3 +1,4 @@
+from datetime import timedelta
 from aiohttp import web
 import aiohttp
 import threading
@@ -43,7 +44,24 @@ async def control_story_CNC(request):
     return web.json_response(result)
 
 
+def time_to_seconds(time_str):
+    parts = {'days': 0, 'hours': 0, 'minutes': 0, 'seconds': 0}
+    time_elements = re.findall(r'(\d+[dhms])', time_str)
+    for element in time_elements:
+        value = int(element[:-1])
+        unit = element[-1]
+        if unit == 'd':
+            parts['days'] = value
+        elif unit == 'h':
+            parts['hours'] = value
+        elif unit == 'm':
+            parts['minutes'] = value
+        elif unit == 's':
+            parts['seconds'] = value
 
+    td = timedelta(days=parts['days'], hours=parts['hours'], minutes=parts['minutes'], seconds=parts['seconds'])
+    total_seconds = td.total_seconds()
+    return total_seconds
 
 async def post_task_CNC(request):
     project_id = request.match_info['project_id']
@@ -58,8 +76,14 @@ async def post_task_CNC(request):
         return web.HTTPPartialContent(text=f"Keyset {data.keys()} is not full")
     try:
         et = int(data['estimated_time'])
+        try:
+            et = data['file_name']\
+                .rsplit('_', 1)[-1].split('.gcode')[0]
+            et = time_to_seconds(et)
+        except Exception as e:
+            print('Estimating time error:',e)
         data = dict(data)
-        data['estimated_time'] = 10
+        data['estimated_time'] = et
     except Exception as e:
         print(f'Failed to get posted task: {e}')
         
@@ -130,7 +154,7 @@ ANYCUBIC_ID = ('1CgV6KVbEe6mhQJCrBIABA', 3)
 ANYCUBIC = dddprinter()
 ANYCUBIC_device = 'COM5'
 ANYCUBIC_baud   = 250000
-ANYCUBIC.connect(ANYCUBIC_device, ANYCUBIC_baud)
+# ANYCUBIC.connect(ANYCUBIC_device, ANYCUBIC_baud)
 class CNC:
     ID: str
     file_name: str
